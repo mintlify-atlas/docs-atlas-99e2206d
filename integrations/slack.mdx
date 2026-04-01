@@ -1,0 +1,55 @@
+---
+title: "Slack integration"
+description: "Receive Probo compliance notifications in Slack"
+---
+
+The Slack integration sends compliance event notifications directly to channels in your Slack workspace. When a task is assigned, an evidence request comes in, or a document needs approval, the right people get notified in Slack without needing to check Probo manually.
+
+## What Probo notifies about
+
+- **Task assignments** — when a compliance task is assigned to a team member
+- **Evidence requests** — when evidence is requested for a measure or control
+- **Document approvals** — when a document version is submitted for approval or has been approved
+
+## Setting up the Slack integration
+
+<Steps>
+  <Step title="Open integration settings">
+    In Probo, navigate to **Settings → Integrations → Slack**.
+  </Step>
+  <Step title="Start the OAuth flow">
+    Click **Connect to Slack**. You will be redirected to Slack's authorization page.
+  </Step>
+  <Step title="Authorize Probo">
+    Select the Slack workspace you want to connect and click **Allow**. Probo requests only the permissions it needs to post messages to channels.
+  </Step>
+  <Step title="Select notification channels">
+    After authorization, return to the Probo settings page and choose which Slack channel should receive each type of notification.
+  </Step>
+  <Step title="Save">
+    Click **Save** to activate the integration. Probo will send a test message to confirm the connection is working.
+  </Step>
+</Steps>
+
+<Note>
+  You need to be a Slack workspace admin (or have permission to install apps) to complete the OAuth flow.
+</Note>
+
+## Disconnecting Slack
+
+To remove the Slack integration:
+
+1. Go to **Settings → Integrations → Slack**.
+2. Click **Disconnect**.
+3. Confirm the removal.
+
+Probo will immediately stop sending notifications to Slack. If you want to revoke Probo's access from the Slack side as well, go to your Slack workspace settings under **Apps** and remove Probo from there.
+
+<CardGroup cols={2}>
+  <Card title="n8n integration" icon="diagram-project" href="/integrations/n8n">
+    Build custom workflows that react to Probo events using n8n.
+  </Card>
+  <Card title="Webhook subscriptions" icon="code-branch" href="/integrations/cli">
+    Use the CLI to manage webhook subscriptions for custom event handling.
+  </Card>
+</CardGroup>

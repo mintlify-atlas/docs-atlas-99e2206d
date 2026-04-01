@@ -1,0 +1,238 @@
+---
+title: "n8n integration"
+description: "Build automated compliance workflows with the Probo n8n community node"
+---
+
+[n8n](https://n8n.io) is an open-source workflow automation platform. The Probo community node lets you connect Probo to hundreds of other services — no code required — so you can automate repetitive compliance tasks and react to events in other tools.
+
+## Installing the Probo node
+
+<Steps>
+  <Step title="Open the n8n community nodes settings">
+    In n8n, go to **Settings → Community nodes**.
+  </Step>
+  <Step title="Install the Probo package">
+    Click **Install** and enter the package name:
+
+    ```
+    @probo/n8n-nodes-probo
+    ```
+
+    Then click **Install**.
+  </Step>
+  <Step title="Restart n8n if prompted">
+    n8n may ask you to restart after installing the node. Accept the prompt to complete the installation.
+  </Step>
+</Steps>
+
+<Note>
+  Community nodes require n8n version 0.187 or later. Self-hosted installations must set the environment variable `N8N_COMMUNITY_PACKAGES_ENABLED=true`.
+</Note>
+
+## Setting up credentials
+
+<Steps>
+  <Step title="Generate a Probo API key">
+    In Probo, go to **Settings → Access → API keys** and create a new key (see [API keys](/access/api-keys)).
+  </Step>
+  <Step title="Add Probo credentials in n8n">
+    In n8n, go to **Credentials → New credential** and search for **Probo API**.
+
+    Fill in the two fields:
+
+    | Field | Value |
+    |-------|-------|
+    | **Probo Server** | Your Probo instance URL, e.g. `https://app.getprobo.com` |
+    | **API Key** | The API key you just generated |
+  </Step>
+  <Step title="Test the connection">
+    Click **Test credential**. n8n will make a test request to verify the key is valid.
+  </Step>
+  <Step title="Save">
+    Click **Save** to store the credentials.
+  </Step>
+</Steps>
+
+## Available resources and operations
+
+The Probo node supports the following resources. Select a resource in the **Resource** dropdown, then choose the operation.
+
+### Asset
+
+| Operation | Description |
+|-----------|-------------|
+| Create | Create a new asset |
+| Delete | Delete an asset |
+| Get | Get an asset by ID |
+| Get Many | Get many assets |
+| Update | Update an existing asset |
+
+### Audit
+
+| Operation | Description |
+|-----------|-------------|
+| Create | Create a new audit |
+| Delete | Delete an audit |
+| Get | Get an audit by ID |
+| Get Many | Get many audits |
+| Update | Update an existing audit |
+| Upload Report | Upload a report file to an audit |
+| Delete Report | Remove a report from an audit |
+
+### Control
+
+| Operation | Description |
+|-----------|-------------|
+| Create | Create a new control |
+| Delete | Delete a control |
+| Get | Get a control by ID |
+| Get Many | Get many controls |
+| Update | Update an existing control |
+
+### Data
+
+| Operation | Description |
+|-----------|-------------|
+| Create | Create a new data record |
+| Delete | Delete a data record |
+| Get | Get a data record by ID |
+| Get Many | Get many data records |
+| Update | Update an existing data record |
+
+### Execute
+
+| Operation | Description |
+|-----------|-------------|
+| Execute | Execute a raw GraphQL query or mutation against the Probo API |
+
+### Framework
+
+| Operation | Description |
+|-----------|-------------|
+| Create | Create a new framework |
+| Delete | Delete a framework |
+| Get | Get a framework by ID |
+| Get Many | Get many frameworks |
+| Update | Update an existing framework |
+
+### Measure
+
+| Operation | Description |
+|-----------|-------------|
+| Create | Create a new measure |
+| Delete | Delete a measure |
+| Get | Get a measure by ID |
+| Get Many | Get many measures |
+| Update | Update an existing measure |
+
+### Meeting
+
+| Operation | Description |
+|-----------|-------------|
+| Create | Create a new meeting |
+| Delete | Delete a meeting |
+| Get | Get a meeting by ID |
+| Get Many | Get many meetings |
+| Update | Update an existing meeting |
+
+### Organization
+
+| Operation | Description |
+|-----------|-------------|
+| Create | Create a new organization |
+| Delete | Delete an organization |
+| Get | Get an organization by ID |
+| Get Many | Get many organizations |
+| Update | Update an existing organization |
+
+### Risk
+
+| Operation | Description |
+|-----------|-------------|
+| Create | Create a new risk |
+| Delete | Delete a risk |
+| Get | Get a risk by ID |
+| Get Many | Get many risks |
+| Update | Update an existing risk |
+| Link Document | Link a document to a risk |
+| Unlink Document | Unlink a document from a risk |
+| Link Measure | Link a measure to a risk |
+| Unlink Measure | Unlink a measure from a risk |
+| Link Obligation | Link an obligation to a risk |
+| Unlink Obligation | Unlink an obligation from a risk |
+
+### User
+
+| Operation | Description |
+|-----------|-------------|
+| Get | Get a user by ID |
+| Get Many | Get many users |
+
+### Vendor
+
+| Operation | Description |
+|-----------|-------------|
+| Create | Create a new vendor |
+| Delete | Delete a vendor |
+| Get | Get a vendor by ID |
+| Get Many | Get many vendors |
+| Update | Update an existing vendor |
+| Create Contact | Create a vendor contact |
+| Update Contact | Update a vendor contact |
+| Delete Contact | Delete a vendor contact |
+| Get Contact | Get a vendor contact |
+| Get Many Contacts | Get many vendor contacts |
+| Create Service | Create a vendor service |
+| Update Service | Update a vendor service |
+| Delete Service | Delete a vendor service |
+| Get Service | Get a vendor service |
+| Get Many Services | Get many vendor services |
+| Create Risk Assessment | Create a vendor risk assessment |
+| Get Risk Assessment | Get a vendor risk assessment |
+| Get Many Risk Assessments | Get many vendor risk assessments |
+
+## Example workflows
+
+### Auto-create a vendor when a new SaaS tool is approved
+
+Connect a form tool (Typeform, Google Forms, Jotform) to Probo so that when a SaaS approval form is submitted, the new vendor is automatically created in Probo.
+
+1. **Trigger** — Webhook or form submission trigger
+2. **Probo node** — Resource: **Vendor**, Operation: **Create**
+   - Map the vendor name, category, and website URL from the form fields
+3. **Slack / Email node** — Notify the security team that a new vendor was added
+
+### Schedule regular evidence collection reminders
+
+Send a weekly message to control owners listing their measures that still need evidence.
+
+1. **Trigger** — Schedule trigger (e.g. every Monday at 9 AM)
+2. **Probo node** — Resource: **Measure**, Operation: **Get Many**
+   - Filter by state `IN_PROGRESS`
+3. **Slack node** — Send a summary message to each control owner with the pending measures
+
+### Sync risk data to a spreadsheet
+
+Keep a Google Sheet up to date with the current risk register.
+
+1. **Trigger** — Schedule trigger (daily)
+2. **Probo node** — Resource: **Risk**, Operation: **Get Many**
+3. **Google Sheets node** — Clear and repopulate the risk sheet with the returned data
+
+<Tip>
+  Use the **Execute** resource to run custom GraphQL queries when you need data or mutations not covered by the built-in operations.
+</Tip>
+
+## Further reading
+
+- [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
+- [Probo API keys](/access/api-keys)
+
+<CardGroup cols={2}>
+  <Card title="MCP integration" icon="robot" href="/integrations/mcp">
+    Connect AI agents to Probo via the Model Context Protocol.
+  </Card>
+  <Card title="CLI (prb)" icon="terminal" href="/integrations/cli">
+    Manage Probo from the command line or CI pipelines.
+  </Card>
+</CardGroup>

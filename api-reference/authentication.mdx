@@ -1,0 +1,73 @@
+---
+title: "Authentication"
+description: "Authenticate API requests using API keys passed as Bearer tokens."
+---
+
+Probo uses API keys for authentication. Every request to the GraphQL API (`/api/console/v1/graphql`) or MCP API (`/api/mcp/v1`) must include a valid API key.
+
+## Create an API key
+
+<Steps>
+  <Step title="Open Settings">
+    In the Probo web app, navigate to **Settings** in the sidebar.
+  </Step>
+  <Step title="Go to API Keys">
+    Select **API Keys** from the settings menu.
+  </Step>
+  <Step title="Create a new key">
+    Click **Create New Key**, give it a descriptive name, and confirm.
+  </Step>
+  <Step title="Copy the key">
+    Copy the key immediately — it will not be shown again after you close the dialog.
+  </Step>
+</Steps>
+
+<Warning>
+  Store your API key securely. It grants full access to your organization's data on behalf of your account. Never commit it to source control or share it in plaintext.
+</Warning>
+
+## Use the API key
+
+Pass your API key as a Bearer token in the `Authorization` header of every request.
+
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+### GraphQL example
+
+```bash
+curl -X POST https://your-probo-instance/api/console/v1/graphql \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ viewer { id } }"}'
+```
+
+### MCP example
+
+```bash
+curl -X POST https://your-probo-instance/api/mcp/v1 \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+## Error responses
+
+If the API key is missing or invalid, the API returns a `401 Unauthorized` response.
+
+```json
+{
+  "error": "unauthorized"
+}
+```
+
+## Key rotation best practices
+
+- Create a new key before revoking the old one to avoid downtime in your integrations.
+- Use one key per integration or application — this makes it easy to revoke access for a single service without affecting others.
+- Set a reminder to rotate keys periodically, especially if team members with access have left your organization.
+- Revoke keys immediately if you suspect they have been compromised.
+
+<Note>
+  API keys are personal — they act on behalf of the user who created them and inherit that user's permissions. Use an account with the appropriate role for your integration's needs.
+</Note>

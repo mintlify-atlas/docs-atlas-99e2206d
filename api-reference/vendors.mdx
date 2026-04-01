@@ -1,0 +1,378 @@
+---
+title: "Vendors"
+description: "Manage third-party vendors and their risk assessments."
+---
+
+Vendors represent external services and suppliers your organization uses. Each vendor can have one or more risk assessments that capture data sensitivity and business impact.
+
+## The Vendor object
+
+<ResponseField name="id" type="string" required>
+  Global ID (GID) of the vendor.
+</ResponseField>
+
+<ResponseField name="organization_id" type="string" required>
+  GID of the organization this vendor belongs to.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Display name of the vendor.
+</ResponseField>
+
+<ResponseField name="description" type="string | null">
+  Optional description.
+</ResponseField>
+
+<ResponseField name="category" type="string" required>
+  Vendor category. See the [Category enum](#category-enum) below.
+</ResponseField>
+
+<ResponseField name="headquarter_address" type="string | null">
+  Physical address of the vendor's headquarters.
+</ResponseField>
+
+<ResponseField name="legal_name" type="string | null">
+  Legal entity name (if different from display name).
+</ResponseField>
+
+<ResponseField name="website_url" type="string | null">
+  Vendor's website URL.
+</ResponseField>
+
+<ResponseField name="privacy_policy_url" type="string | null">
+  URL of the vendor's privacy policy.
+</ResponseField>
+
+<ResponseField name="service_level_agreement_url" type="string | null">
+  URL of the service level agreement document.
+</ResponseField>
+
+<ResponseField name="data_processing_agreement_url" type="string | null">
+  URL of the data processing agreement.
+</ResponseField>
+
+<ResponseField name="business_associate_agreement_url" type="string | null">
+  URL of the business associate agreement (relevant for HIPAA).
+</ResponseField>
+
+<ResponseField name="subprocessors_list_url" type="string | null">
+  URL of the vendor's subprocessors list.
+</ResponseField>
+
+<ResponseField name="certifications" type="string[]">
+  List of compliance certifications held by the vendor (e.g. `"SOC 2 Type II"`, `"ISO 27001"`).
+</ResponseField>
+
+<ResponseField name="countries" type="string[]">
+  Countries where the vendor operates or stores data (ISO 3166-1 alpha-2 codes).
+</ResponseField>
+
+<ResponseField name="business_owner_id" type="string | null">
+  GID of the internal user who owns the business relationship with this vendor.
+</ResponseField>
+
+<ResponseField name="security_owner_id" type="string | null">
+  GID of the internal user who owns the security review for this vendor.
+</ResponseField>
+
+<ResponseField name="status_page_url" type="string | null">
+  URL of the vendor's status page.
+</ResponseField>
+
+<ResponseField name="terms_of_service_url" type="string | null">
+  URL of the vendor's terms of service.
+</ResponseField>
+
+<ResponseField name="security_page_url" type="string | null">
+  URL of the vendor's security documentation page.
+</ResponseField>
+
+<ResponseField name="trust_page_url" type="string | null">
+  URL of the vendor's trust center.
+</ResponseField>
+
+<ResponseField name="created_at" type="string (date-time)" required>
+  ISO 8601 timestamp of when the vendor was created.
+</ResponseField>
+
+<ResponseField name="updated_at" type="string (date-time)" required>
+  ISO 8601 timestamp of the last update.
+</ResponseField>
+
+## Category enum
+
+| Value | Description |
+|-------|-------------|
+| `ANALYTICS` | Analytics and reporting tools |
+| `CLOUD_MONITORING` | Infrastructure monitoring services |
+| `CLOUD_PROVIDER` | Cloud infrastructure providers |
+| `COLLABORATION` | Team communication and collaboration |
+| `CUSTOMER_SUPPORT` | Customer service platforms |
+| `DATA_STORAGE_AND_PROCESSING` | Databases and data processing services |
+| `DOCUMENT_MANAGEMENT` | Document storage and management |
+| `EMPLOYEE_MANAGEMENT` | HR and employee lifecycle tools |
+| `ENGINEERING` | Developer tools and platforms |
+| `FINANCE` | Accounting and financial services |
+| `IDENTITY_PROVIDER` | SSO, directory, and identity services |
+| `IT` | IT management and support tools |
+| `MARKETING` | Marketing and advertising platforms |
+| `OFFICE_OPERATIONS` | Office management and facilities |
+| `OTHER` | Vendors that don't fit other categories |
+| `PASSWORD_MANAGEMENT` | Password managers and secrets tools |
+| `PRODUCT_AND_DESIGN` | Product management and design tools |
+| `PROFESSIONAL_SERVICES` | Consulting and professional service firms |
+| `RECRUITING` | Recruiting and applicant tracking systems |
+| `SALES` | CRM and sales tools |
+| `SECURITY` | Security tools and services |
+| `VERSION_CONTROL` | Source code and version control systems |
+
+## The VendorRiskAssessment object
+
+<ResponseField name="id" type="string" required>
+  Global ID (GID) of the risk assessment.
+</ResponseField>
+
+<ResponseField name="organization_id" type="string" required>
+  GID of the organization.
+</ResponseField>
+
+<ResponseField name="vendor_id" type="string" required>
+  GID of the vendor this assessment belongs to.
+</ResponseField>
+
+<ResponseField name="data_sensitivity" type="string" required>
+  The sensitivity of data shared with this vendor. One of: `NONE`, `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`.
+</ResponseField>
+
+<ResponseField name="business_impact" type="string" required>
+  The business impact if this vendor becomes unavailable. One of: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`.
+</ResponseField>
+
+<ResponseField name="expires_at" type="string (date-time)" required>
+  When this risk assessment expires and should be renewed.
+</ResponseField>
+
+<ResponseField name="notes" type="string | null">
+  Optional notes about this risk assessment.
+</ResponseField>
+
+<ResponseField name="snapshot_id" type="string | null">
+  GID of the snapshot this assessment belongs to, or null for live data.
+</ResponseField>
+
+<ResponseField name="created_at" type="string (date-time)" required>
+  ISO 8601 timestamp of when the assessment was created.
+</ResponseField>
+
+<ResponseField name="updated_at" type="string (date-time)" required>
+  ISO 8601 timestamp of the last update.
+</ResponseField>
+
+## Operations
+
+### listVendors
+
+Returns all vendors for the organization.
+
+**MCP tool:** `listVendors`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="size" type="integer">
+  Number of results per page.
+</ParamField>
+
+<ParamField body="cursor" type="string">
+  Pagination cursor from a previous response's `next_cursor`.
+</ParamField>
+
+<ParamField body="order_by" type="object">
+  <Expandable title="order_by fields">
+    <ParamField body="field" type="string">
+      Sort field. One of: `CREATED_AT`, `UPDATED_AT`, `NAME`.
+    </ParamField>
+    <ParamField body="direction" type="string">
+      Sort direction. One of: `ASC`, `DESC`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="filter" type="object">
+  <Expandable title="filter fields">
+    <ParamField body="snapshot_id" type="string | null">
+      Filter by snapshot GID. Defaults to `null`, which returns current live data.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+#### Response
+
+<ResponseField name="vendors" type="Vendor[]" required>
+  Array of vendor objects.
+</ResponseField>
+
+<ResponseField name="next_cursor" type="string">
+  Cursor for the next page.
+</ResponseField>
+
+---
+
+### addVendor
+
+Creates a new vendor.
+
+**MCP tool:** `addVendor`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Vendor name.
+</ParamField>
+
+<ParamField body="description" type="string">
+  Optional description.
+</ParamField>
+
+<ParamField body="category" type="string">
+  Vendor category (see [Category enum](#category-enum)).
+</ParamField>
+
+<ParamField body="legal_name" type="string">
+  Legal entity name.
+</ParamField>
+
+<ParamField body="website_url" type="string">
+  Vendor website.
+</ParamField>
+
+<ParamField body="privacy_policy_url" type="string">
+  Privacy policy URL.
+</ParamField>
+
+<ParamField body="service_level_agreement_url" type="string">
+  SLA document URL.
+</ParamField>
+
+<ParamField body="data_processing_agreement_url" type="string">
+  DPA document URL.
+</ParamField>
+
+<ParamField body="business_associate_agreement_url" type="string">
+  BAA document URL.
+</ParamField>
+
+<ParamField body="subprocessors_list_url" type="string">
+  Subprocessors list URL.
+</ParamField>
+
+<ParamField body="certifications" type="string[]">
+  List of compliance certifications.
+</ParamField>
+
+<ParamField body="countries" type="string[]">
+  Countries of operation (ISO 3166-1 alpha-2).
+</ParamField>
+
+<ParamField body="business_owner_id" type="string">
+  GID of the business owner profile.
+</ParamField>
+
+<ParamField body="security_owner_id" type="string">
+  GID of the security owner profile.
+</ParamField>
+
+<ParamField body="status_page_url" type="string">
+  Status page URL.
+</ParamField>
+
+<ParamField body="terms_of_service_url" type="string">
+  Terms of service URL.
+</ParamField>
+
+<ParamField body="security_page_url" type="string">
+  Security documentation URL.
+</ParamField>
+
+<ParamField body="trust_page_url" type="string">
+  Trust center URL.
+</ParamField>
+
+#### Response
+
+<ResponseField name="vendor" type="Vendor" required>
+  The created vendor object.
+</ResponseField>
+
+---
+
+### updateVendor
+
+Updates an existing vendor.
+
+**MCP tool:** `updateVendor`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the vendor to update.
+</ParamField>
+
+All other fields from `addVendor` are optional and will only update if provided.
+
+#### Response
+
+<ResponseField name="vendor" type="Vendor" required>
+  The updated vendor object.
+</ResponseField>
+
+---
+
+### deleteVendor
+
+Deletes a vendor.
+
+**MCP tool:** `deleteVendor`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the vendor to delete.
+</ParamField>
+
+#### Response
+
+<ResponseField name="deleted_vendor_id" type="string" required>
+  GID of the deleted vendor.
+</ResponseField>
+
+## Example
+
+```bash
+curl -X POST https://your-probo-instance/api/mcp/v1 \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "addVendor",
+      "arguments": {
+        "organization_id": "gid://probo/Organization/01J5XKZW9QMXP3N6V8HTJA2FKB",
+        "name": "AWS",
+        "category": "CLOUD_PROVIDER",
+        "website_url": "https://aws.amazon.com",
+        "certifications": ["SOC 2 Type II", "ISO 27001"],
+        "countries": ["US", "IE", "DE"]
+      }
+    }
+  }'
+```

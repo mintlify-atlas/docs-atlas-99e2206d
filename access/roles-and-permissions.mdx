@@ -1,0 +1,137 @@
+---
+title: "Roles and permissions"
+description: "Role-based access control (RBAC) in Probo — what each role can do and how to manage team membership."
+---
+
+Probo uses role-based access control (RBAC) to govern what each member of your organization can see and do. Every user is assigned exactly one role per organization.
+
+## Roles
+
+<AccordionGroup>
+  <Accordion title="Owner">
+    Owners have full access to the organization, including billing, organization settings, and all compliance data. Only an Owner can promote another member to Owner or delete the organization.
+
+    - Manage organization settings and billing
+    - Invite, update, and remove members (including SCIM-provisioned users)
+    - Assign any role, including Owner
+    - Create, update, and delete SAML and SCIM configurations
+    - Full access to all compliance data: frameworks, risks, vendors, policies, evidence, and audit logs
+  </Accordion>
+
+  <Accordion title="Admin">
+    Admins can manage the team and all compliance content, but cannot delete the organization or manage SSO/SCIM configuration.
+
+    - Invite members and update roles (except promoting to Owner)
+    - Manage frameworks, risks, vendors, policies, and evidence
+    - View SAML and SCIM configuration (read-only)
+    - View audit logs
+    - Cannot delete the organization
+  </Accordion>
+
+  <Accordion title="Employee">
+    Employees can view compliance data and contribute to tasks and evidence assigned to them. This is the default role assigned when a user joins via SSO or SCIM provisioning.
+
+    - View compliance frameworks, controls, and risks
+    - Complete assigned tasks and upload evidence
+    - View organization member directory
+  </Accordion>
+
+  <Accordion title="Viewer">
+    Viewers have read-only access to your organization's compliance data. Suitable for stakeholders who need visibility without making changes.
+
+    - View frameworks, risks, vendors, and policies
+    - View the member directory
+    - View audit logs
+    - Cannot create, update, or delete any resource
+  </Accordion>
+
+  <Accordion title="Auditor">
+    Auditors have read-only access, with additional visibility into audit reports. Intended for external auditors performing compliance reviews.
+
+    - Everything a Viewer can do
+    - View detailed audit log entries
+    - Cannot create, update, or delete any resource
+  </Accordion>
+</AccordionGroup>
+
+## Permissions reference
+
+| Action | Owner | Admin | Employee | Viewer | Auditor |
+|--------|:-----:|:-----:|:--------:|:------:|:-------:|
+| Manage organization settings | ✓ | ✓ | | | |
+| Delete organization | ✓ | | | | |
+| Invite members | ✓ | ✓ | | | |
+| Remove members | ✓ | | | | |
+| Assign Owner role | ✓ | | | | |
+| Change member roles | ✓ | ✓ | | | |
+| Manage SAML configuration | ✓ | | | | |
+| View SAML configuration | ✓ | ✓ | | | |
+| Manage SCIM configuration | ✓ | | | | |
+| View SCIM configuration | ✓ | ✓ | | | |
+| View audit logs | ✓ | ✓ | | ✓ | ✓ |
+| Manage frameworks, risks, vendors | ✓ | ✓ | | | |
+| View compliance data | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Complete assigned tasks | ✓ | ✓ | ✓ | | |
+
+## Inviting users
+
+<Steps>
+  <Step title="Open team settings">
+    In your organization, navigate to **Settings** → **Members**.
+  </Step>
+  <Step title="Create the user profile">
+    Click **Add member** and fill in:
+
+    - **Full name**
+    - **Email address**
+    - **Role** — select from Owner, Admin, Employee, Viewer, or Auditor
+    - **Kind** — optionally specify the profile kind (for example, `employee` or `contractor`)
+    - **Position** — job title (optional)
+    - **Contract start / end dates** — for contractors with a fixed engagement period (optional)
+  </Step>
+  <Step title="Send the invitation">
+    Click **Invite**. Probo sends the user an email with a link to activate their account and join your organization.
+  </Step>
+</Steps>
+
+<Note>
+  If your organization uses SCIM provisioning, users are created automatically from your identity provider. You do not need to invite them manually. See [SCIM provisioning](/access/scim-provisioning).
+</Note>
+
+## Changing a user's role
+
+<Steps>
+  <Step title="Open team settings">
+    Navigate to **Settings** → **Members**.
+  </Step>
+  <Step title="Edit the membership">
+    Find the member in the list and click the role badge or the **Edit** option next to their name.
+  </Step>
+  <Step title="Select a new role">
+    Choose the new role from the dropdown and save. The change takes effect immediately.
+  </Step>
+</Steps>
+
+<Warning>
+  Only Owners can assign or revoke the Owner role. Admins can change roles for all members except Owners.
+</Warning>
+
+## Profile kinds and contractor dates
+
+Each user profile has an optional **kind** field that describes the nature of the engagement. Common values include `employee` and `contractor`.
+
+For contractors, you can set:
+
+- **Contract start date** — the date the engagement begins
+- **Contract end date** — the date the engagement ends
+
+When a contract end date is in the past, the profile is considered contract-ended. You can filter member lists to exclude contract-ended users.
+
+<CardGroup cols={2}>
+  <Card title="SSO with SAML" icon="shield-halved" href="/access/sso-saml">
+    Configure single sign-on for your organization.
+  </Card>
+  <Card title="SCIM provisioning" icon="users" href="/access/scim-provisioning">
+    Automate user provisioning from your identity provider.
+  </Card>
+</CardGroup>

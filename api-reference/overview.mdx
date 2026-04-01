@@ -1,0 +1,92 @@
+---
+title: "API overview"
+description: "Probo exposes two primary APIs for programmatic access: a GraphQL API for CRUD operations and an MCP API for AI agent automation."
+---
+
+Probo provides two complementary APIs. The GraphQL API is the primary interface for all data operations — the same API the web app uses. The MCP API is purpose-built for AI agents, following the [Model Context Protocol](https://modelcontextprotocol.io) standard.
+
+## GraphQL API
+
+**Endpoint:** `POST /api/console/v1/graphql`
+
+The GraphQL API supports all create, read, update, and delete operations across every resource in Probo. Use it to build integrations, automate workflows, or query compliance data programmatically.
+
+```bash
+curl -X POST https://your-probo-instance/api/console/v1/graphql \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ viewer { id } }"}'
+```
+
+## MCP API
+
+**Endpoint:** `POST /api/mcp/v1`
+
+The MCP API exposes Probo as a set of tools that AI agents can call directly. It is designed for use with MCP-compatible clients such as Claude Desktop, Cursor, and custom agent frameworks.
+
+<Tip>
+  If you're building an AI-powered compliance workflow, start with the MCP API. If you're building a custom integration or dashboard, use the GraphQL API.
+</Tip>
+
+## Authentication
+
+Both APIs use the same authentication mechanism: an API key passed as a Bearer token in the `Authorization` header.
+
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+See the [Authentication](/api-reference/authentication) page for details on creating and managing API keys.
+
+## IDs
+
+All resource IDs in Probo are **Global IDs (GIDs)** — opaque strings that encode both the resource type and its identifier. Always treat them as strings; do not attempt to parse or construct them manually.
+
+Example GID: `"gid://probo/Organization/01J5XKZW9QMXP3N6V8HTJA2FKB"`
+
+## Pagination
+
+List operations use cursor-based pagination. Each response includes a `next_cursor` field. Pass this value as the `cursor` parameter in your next request to retrieve the following page.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cursor` | string | Opaque cursor from the previous response's `next_cursor` |
+| `size` | integer | Number of results per page |
+
+When `next_cursor` is absent or null in the response, you have reached the last page.
+
+```json
+{
+  "vendors": [...],
+  "next_cursor": "eyJmIjoiQ1JFQVRFRF9BVCIsImQiOiJBU0MiLCJ2IjoiMjAyNC0..."
+}
+```
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Create API keys and authenticate requests
+  </Card>
+  <Card title="Organizations" icon="building" href="/api-reference/organizations">
+    Access organization data
+  </Card>
+  <Card title="Users" icon="users" href="/api-reference/users">
+    Manage users and memberships
+  </Card>
+  <Card title="Vendors" icon="store" href="/api-reference/vendors">
+    Track third-party vendors and risk assessments
+  </Card>
+  <Card title="Risks" icon="triangle-exclamation" href="/api-reference/risks">
+    Create and manage risks
+  </Card>
+  <Card title="Measures" icon="shield-check" href="/api-reference/measures">
+    Manage security and compliance measures
+  </Card>
+  <Card title="Frameworks" icon="list-check" href="/api-reference/frameworks">
+    Work with compliance frameworks
+  </Card>
+  <Card title="Assets" icon="server" href="/api-reference/assets">
+    Track physical and virtual assets
+  </Card>
+</CardGroup>

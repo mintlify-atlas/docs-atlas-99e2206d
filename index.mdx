@@ -1,97 +1,61 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Welcome to Probo"
+description: "Open source compliance platform for SOC2, ISO27001, GDPR, HIPAA, and more — built for startups that need to move fast."
 ---
 
-## Setting up
+Probo helps you achieve and maintain compliance certifications without the enterprise price tag. Manage risks, track vendors, collect evidence, write policies, and share your security posture with customers — all in one open source platform.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Quick start" icon="rocket" href="/quickstart">
+    Create your account and complete your first compliance task in minutes.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Compliance frameworks" icon="shield-check" href="/features/compliance-frameworks">
+    SOC2, ISO27001, GDPR, HIPAA and more — choose the frameworks that matter to you.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Self-host Probo" icon="server" href="/deployment">
+    Run Probo on your own infrastructure using Docker Compose.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="API reference" icon="code" href="/api-reference/overview">
+    Automate compliance workflows via GraphQL and MCP APIs.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Core features
 
-Everything you need to create world-class documentation.
+<CardGroup cols={3}>
+  <Card title="Risk management" icon="triangle-exclamation" href="/features/risk-management">
+    Track inherent and residual risk scores across your organization.
+  </Card>
+  <Card title="Vendor management" icon="building" href="/features/vendor-management">
+    Assess third-party vendors and track their compliance posture.
+  </Card>
+  <Card title="Policy documents" icon="file-lines" href="/features/policies-and-documents">
+    Draft, version, approve, and sign compliance policies.
+  </Card>
+  <Card title="Evidence collection" icon="paperclip" href="/features/evidence-collection">
+    Link files and URLs to controls as audit evidence.
+  </Card>
+  <Card title="Trust center" icon="globe" href="/features/trust-center">
+    Share your security posture publicly with a branded trust page.
+  </Card>
+  <Card title="Audit management" icon="magnifying-glass" href="/features/compliance-frameworks">
+    Track audits, findings, and remediation progress.
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Integrations & automation
 
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<CardGroup cols={2}>
+  <Card title="CLI (prb)" icon="terminal" href="/integrations/cli">
+    Manage risks, controls, evidence, and more from the command line.
+  </Card>
+  <Card title="MCP for AI agents" icon="robot" href="/integrations/mcp">
+    Connect AI assistants to Probo using the Model Context Protocol.
+  </Card>
+  <Card title="Slack" icon="slack" href="/integrations/slack">
+    Receive compliance notifications and alerts in Slack.
+  </Card>
+  <Card title="n8n" icon="diagram-project" href="/integrations/n8n">
+    Build automated compliance workflows with the Probo n8n node.
+  </Card>
+</CardGroup>

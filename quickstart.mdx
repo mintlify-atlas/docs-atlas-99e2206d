@@ -1,80 +1,120 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Quick start"
+description: "Get Probo running locally in under 10 minutes, or sign up for the cloud-hosted version."
 ---
 
-## Get started in three steps
+<Tabs>
+  <Tab title="Cloud-hosted">
+    The fastest way to get started is with the cloud-hosted version of Probo.
 
-Get your documentation site running locally and make your first customization.
+    <Steps>
+      <Step title="Create your account">
+        Visit [app.getprobo.com](https://app.getprobo.com) and sign up for a free account.
+      </Step>
+      <Step title="Create your organization">
+        After signing in, create an organization for your company. This is the top-level container for all your compliance data.
+      </Step>
+      <Step title="Select a compliance framework">
+        Navigate to **Frameworks** and select the framework you want to pursue — SOC2, ISO 27001, GDPR, HIPAA, or others. Probo will populate a pre-built set of controls to work through.
+      </Step>
+      <Step title="Invite your team">
+        Go to **Settings → Team** and invite colleagues. Assign roles (Owner, Admin, Employee, Viewer, Auditor) based on their responsibilities.
+      </Step>
+    </Steps>
 
-### Step 1: Set up your local environment
+    <CardGroup cols={2}>
+      <Card title="Compliance frameworks" icon="shield-check" href="/features/compliance-frameworks">
+        Understand how frameworks, controls, measures, and evidence fit together.
+      </Card>
+      <Card title="Roles and permissions" icon="users" href="/access/roles-and-permissions">
+        Learn about the five roles and what each one can do.
+      </Card>
+    </CardGroup>
+  </Tab>
+  <Tab title="Self-hosted">
+    Run Probo on your own infrastructure using Docker Compose and a single Go binary.
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    ## Prerequisites
 
-### Step 2: Deploy your changes
+    Before you begin, make sure you have:
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    - **Go 1.21+** — [download](https://go.dev/dl/)
+    - **Node.js 22+** — [download](https://nodejs.org/)
+    - **Docker** — [download](https://docs.docker.com/get-docker/)
+    - **mkcert** — for local TLS (`brew install mkcert` or [see docs](https://github.com/FiloSottile/mkcert))
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    ## Setup
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    <Steps>
+      <Step title="Clone the repository">
+        ```bash
+        git clone --recurse-submodules https://github.com/getprobo/probo.git
+        cd probo
+        ```
 
-### Step 3: Go live
+        <Note>
+          The `--recurse-submodules` flag is required — Probo uses Git submodules for some dependencies.
+        </Note>
+      </Step>
+      <Step title="Install dependencies">
+        ```bash
+        # Install Go dependencies
+        go mod download
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+        # Install Node.js dependencies
+        npm ci
+        ```
+      </Step>
+      <Step title="Start infrastructure services">
+        ```bash
+        make stack-up
+        ```
 
-## Next steps
+        This starts PostgreSQL, SeaweedFS (S3-compatible file storage), Mailpit (local email), Chrome (for PDF generation), and the observability stack via Docker Compose.
+      </Step>
+      <Step title="Build the project">
+        ```bash
+        make build
+        ```
 
-Now that you have your docs running, explore these key features:
+        This compiles the Go binary and bundles the React frontend into `bin/probod`.
 
-<CardGroup cols={2}>
+        <Tip>
+          For faster iteration on backend changes only, skip the frontend build: `SKIP_APPS=1 make build`
+        </Tip>
+      </Step>
+      <Step title="Start Probo">
+        ```bash
+        bin/probod -cfg-file cfg/dev.yaml
+        ```
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+        The application will be available at **http://localhost:8080**.
+      </Step>
+    </Steps>
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+    <Warning>
+      The `cfg/dev.yaml` configuration uses insecure placeholder secrets and is intended for local development only. Never use it in production. See [Deployment](/deployment) for production configuration.
+    </Warning>
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+    ## Testing custom domains (optional)
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+    To test the trust center custom domain feature locally, add the CNAME target to your hosts file:
 
-</CardGroup>
+    ```bash
+    # macOS / Linux: edit /etc/hosts
+    # Windows: edit C:\Windows\System32\drivers\etc\hosts
+    127.0.0.1 custom.getprobo.com
+    ```
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+    The CNAME target is configured in `cfg/dev.yaml` under `custom-domains.cname-target`.
+
+    <CardGroup cols={2}>
+      <Card title="Deployment" icon="server" href="/deployment">
+        Production deployment with Docker Compose.
+      </Card>
+      <Card title="Configuration reference" icon="gear" href="/self-hosting/configuration">
+        All configuration options for self-hosted Probo.
+      </Card>
+    </CardGroup>
+  </Tab>
+</Tabs>

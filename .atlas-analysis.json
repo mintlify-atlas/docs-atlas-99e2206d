@@ -1,28 +1,11 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "name": "Probo",
+  "projectType": "saas",
+  "projectName": "Probo",
+  "projectDescription": "Open source compliance platform for achieving SOC2, ISO27001, GDPR, and other regulatory certifications with built-in risk management, vendor tracking, policy documents, and a public trust center.",
   "theme": "palm",
-  "colors": {
-    "primary": "#daf00c",
-    "light": "#819719",
-    "dark": "#161f1b"
-  },
-  "favicon": "https://media.brand.dev/b1a85c6f-36a3-415f-bbb1-888a4b96018b.jpg",
-  "logo": {
-    "light": "https://media.brand.dev/e157a6a4-6ef2-4094-bf1c-9751f5647cf2.svg",
-    "dark": "https://media.brand.dev/e157a6a4-6ef2-4094-bf1c-9751f5647cf2.svg"
-  },
-  "navbar": {
-    "primary": {
-      "type": "github",
-      "href": "https://github.com/getprobo/probo"
-    }
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/getprobo/probo"
-    }
-  },
+  "primaryColor": "#daf00c",
+  "lightColor": "#819719",
+  "darkColor": "#161f1b",
   "navigation": {
     "tabs": [
       {
@@ -100,5 +83,28 @@
         ]
       }
     ]
-  }
+  },
+  "keyFeatures": [
+    "Compliance frameworks for SOC2, ISO27001, GDPR, HIPAA, ISO27701, ISO42001",
+    "Risk register with inherent and residual scoring",
+    "Vendor management with risk assessments and compliance reports",
+    "Policy and document management with version control and approval workflows",
+    "Evidence collection linked to measures and controls",
+    "Public-facing Trust Center with custom domain support",
+    "Role-based access control (Owner, Admin, Employee, Viewer, Auditor)",
+    "SAML SSO and SCIM user provisioning",
+    "AI-assisted automation via MCP (Model Context Protocol)",
+    "CLI tool (prb) for managing compliance resources programmatically",
+    "GraphQL API for all platform resources",
+    "Audit management with findings tracking",
+    "DPIA and Transfer Impact Assessments for GDPR compliance",
+    "Webhook subscriptions for event-driven automation"
+  ],
+  "publicApiSurface": [
+    "GraphQL API: console/v1 (organizations, vendors, risks, measures, frameworks, controls, documents, evidence, audits, assets)",
+    "MCP API: listVendors, addVendor, updateVendor, deleteVendor, listRisks, addRisk, updateRisk, deleteRisk, listMeasures, addMeasure, updateMeasure, listFrameworks, listUsers, createUser, updateUser, inviteUser",
+    "CLI: prb auth, prb org, prb risk, prb control, prb framework, prb evidence, prb user, prb finding, prb soa, prb webhook",
+    "REST: /api/console/v1 (authn, authz, files, connectors), /api/mcp/v1 (MCP over HTTP), /api/connect/v1 (SCIM), /api/trust/v1 (trust center)",
+    "n8n custom node: @getprobo/n8n-node-probo"
+  ]
 }

@@ -1,0 +1,168 @@
+---
+title: 'Trust center'
+description: 'Publish a public or gated security and compliance page to share your posture with customers and prospects.'
+keywords: ['trust center', 'security page', 'compliance page', 'public', 'private', 'NDA', 'custom domain', 'CNAME']
+---
+
+Probo's trust center is a dedicated security and compliance page for your organization that you can share with customers, prospects, and partners. It surfaces your framework certifications, published policies, and security updates in one place — reducing the time your team spends responding to individual security questionnaires.
+
+## Visibility settings
+
+Your trust center has three visibility modes:
+
+| Mode | Who can view |
+|------|-------------|
+| `NONE` | Trust center is disabled and not publicly accessible |
+| `PRIVATE` | Accessible only to visitors who have been granted explicit access |
+| `PUBLIC` | Accessible to anyone with the link |
+
+You can change the visibility mode at any time. Switching from `PUBLIC` to `PRIVATE` immediately requires visitors to authenticate or present an access grant.
+
+## Setting up your trust center
+
+<Steps>
+  <Step title="Choose a slug">
+    Set a URL-friendly slug for your trust center. Your trust center will be accessible at a URL based on this slug. The slug must be unique across all Probo organizations.
+  </Step>
+
+  <Step title="Set visibility">
+    Choose whether your trust center should be public, private (gated), or disabled.
+  </Step>
+
+  <Step title="Configure search engine indexing">
+    Control whether search engines can index your trust center:
+    - `INDEXABLE` — allows search engines to crawl and index the page
+    - `NOT_INDEXABLE` — sends a `noindex` directive to search engines
+
+    If your trust center is private or contains sensitive information, set this to `NOT_INDEXABLE`.
+  </Step>
+
+  <Step title="Add content">
+    Add compliance framework badges, files, references, and configure the mailing list to make your trust center useful for visitors.
+  </Step>
+</Steps>
+
+## Custom domain
+
+By default your trust center is served from Probo's domain. You can configure a custom domain (e.g. `security.yourcompany.com`) so the trust center reflects your brand.
+
+<Steps>
+  <Step title="Add your custom domain">
+    Create a custom domain record in Probo with your desired hostname.
+  </Step>
+
+  <Step title="Configure your DNS">
+    Add a CNAME record in your DNS provider pointing your hostname to Probo's trust center endpoint. Probo will verify the CNAME record is in place before activating the domain.
+  </Step>
+
+  <Step title="SSL certificate provisioning">
+    Once the CNAME is verified, Probo automatically provisions a TLS certificate via ACME (Let's Encrypt or equivalent). The domain will be active and served over HTTPS once the certificate is issued.
+  </Step>
+</Steps>
+
+<Note>
+DNS propagation can take up to 48 hours. SSL certificate provisioning begins automatically after your CNAME is verified.
+</Note>
+
+## NDA-gated access
+
+For sensitive compliance documents, you can require visitors to accept a Non-Disclosure Agreement (NDA) before accessing the trust center.
+
+<Steps>
+  <Step title="Upload your NDA">
+    Upload a PDF of your NDA to the trust center. This file is presented to visitors who request access.
+  </Step>
+
+  <Step title="Enable NDA requirement">
+    Associate the uploaded NDA file with your trust center. Visitors will be required to accept the agreement before viewing gated content.
+  </Step>
+
+  <Step title="Remove the NDA">
+    Delete the NDA file association from the trust center at any time. Existing access grants remain valid.
+  </Step>
+</Steps>
+
+## Access grants (private trust center)
+
+When your trust center is set to `PRIVATE`, you control access by creating access grants for specific individuals or domains.
+
+| Action | Description |
+|--------|-------------|
+| Create | Grant access to a specific email address or organization domain |
+| Update | Modify an existing grant (e.g. change its expiry) |
+| Delete | Revoke access for a grantee |
+
+Access grants have states that reflect the visitor's progress through the access flow:
+
+| State | Meaning |
+|-------|---------|
+| Pending | Grant created but visitor has not yet signed in |
+| Active | Visitor has authenticated and has access |
+| Revoked | Access has been explicitly removed |
+
+## Compliance framework badges
+
+Display your current certifications prominently on your trust center. You manage which compliance frameworks appear as badges through the compliance framework configuration. Frameworks are ranked to control their display order.
+
+You can add external URLs to each framework entry — for example, a link to a third-party certification portal or a downloadable certificate.
+
+## Trust center files
+
+Upload files to share with visitors, such as:
+- Penetration test executive summaries
+- SOC 2 bridge letters
+- Security overview documents
+
+Each file has a name, description, and an optional expiry date. You can control whether individual files are visible to the public or only to visitors with an access grant.
+
+## Trust center references
+
+References are external links you surface on your trust center, such as links to your company's security blog, bug bounty program, or certification portal. Each reference has a name, URL, and optional logo.
+
+## Mailing list
+
+The trust center includes an opt-in mailing list for security update notifications. Visitors can subscribe to receive notifications when you publish a security update.
+
+### Managing subscribers
+
+Subscribers are stored in your trust center mailing list. You can:
+- View all subscribers
+- Add subscribers manually
+- Remove individual subscribers
+
+### Publishing security updates
+
+Create a mailing list update with a subject and body, then send it to all active subscribers. Updates are delivered as email notifications to every subscriber.
+
+<AccordionGroup>
+  <Accordion title="Can I show vendor information on my trust center?">
+    Yes. For each vendor in your vendor registry, you can enable `show_on_trust_center`. When enabled, the vendor's name and certifications are displayed in the subprocessors section of your trust center.
+  </Accordion>
+
+  <Accordion title="Can I share specific documents through the trust center?">
+    Yes. Documents with `trust_center_visibility` set to `PUBLIC` or `PRIVATE` are listed on your trust center. Visitors with appropriate access can request to view them. Document access requests go through an approval workflow where you can grant, reject, or revoke access.
+  </Accordion>
+
+  <Accordion title="What happens when I disable my trust center?">
+    Setting visibility to `NONE` makes the trust center inaccessible to all external visitors. Existing access grants, subscribers, and content are preserved. You can re-enable the trust center at any time.
+  </Accordion>
+
+  <Accordion title="Can I use a custom logo on the trust center?">
+    Yes. You can upload both a light and a dark version of your logo through the trust center brand settings. Probo serves the appropriate version based on the visitor's display preferences.
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Compliance frameworks" icon="layers" href="/features/compliance-frameworks">
+    Configure which framework badges appear on your trust center.
+  </Card>
+  <Card title="Policies and documents" icon="file-text" href="/features/policies-and-documents">
+    Publish policies to your trust center.
+  </Card>
+  <Card title="Vendor management" icon="building" href="/features/vendor-management">
+    Display vendor certifications on your trust center.
+  </Card>
+  <Card title="Evidence collection" icon="file-check" href="/features/evidence-collection">
+    Collect the evidence behind your trust center claims.
+  </Card>
+</CardGroup>

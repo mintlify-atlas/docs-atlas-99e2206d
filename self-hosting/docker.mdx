@@ -1,0 +1,237 @@
+---
+title: "Docker deployment"
+description: "Running Probo with Docker Compose, from development to production."
+---
+
+Probo ships with Docker Compose configurations for both development and production. The development setup (`compose.yaml`) includes additional services such as a local mail catcher, an ACME test server, and a Keycloak identity provider. The production setup (`compose.prod.yaml`) strips those down to the essential services.
+
+<Info>
+  **Prerequisites**
+  - Docker 20 or later
+  - Docker Compose v2 (`docker compose`, not `docker-compose`)
+</Info>
+
+## Services overview
+
+<AccordionGroup>
+  <Accordion title="postgres — primary database">
+    PostgreSQL is Probo's only persistent data store. The compose configuration mounts an init script that creates the `probod` user and database on first start.
+
+    - Image: `postgres:17.4` (production) / `postgres:18.1` (dev)
+    - Port: `5432`
+    - Data volume: `postgres-data`
+    - Health check: `pg_isready`
+  </Accordion>
+  <Accordion title="seaweedfs — S3-compatible file storage">
+    SeaweedFS provides an S3-compatible object storage endpoint used for uploaded files (evidence, policies, documents). In production you may replace it with AWS S3, MinIO, Cloudflare R2, or any S3-compatible service.
+
+    - Image: `chrislusf/seaweedfs:4.13`
+    - S3 port: `8333`
+    - Data volume: `seaweedfs-data`
+    - Credentials are configured in `compose/seaweedfs/s3.json`
+  </Accordion>
+  <Accordion title="chrome — headless browser for PDF generation">
+    Probo uses headless Chrome to render compliance reports and trust center pages as PDFs. The DevTools Protocol port is exposed so `probod` can connect.
+
+    - Image: `chromedp/headless-shell:140.0.7259.2`
+    - Port: `9222` (Chrome DevTools Protocol)
+  </Accordion>
+  <Accordion title="mailpit — local email testing (dev only)">
+    Mailpit catches all outgoing SMTP email during development so you can inspect notifications without sending real messages.
+
+    - Image: `axllent/mailpit:latest`
+    - SMTP port: `1025`
+    - Web UI: `http://localhost:8025`
+
+    Remove this service in production and configure a real SMTP server under `probod.notifications.mailer`.
+  </Accordion>
+  <Accordion title="pebble / pebble-challtestsrv — ACME test server (dev only)">
+    Pebble is a local Let's Encrypt-compatible ACME server for testing custom domain TLS certificate provisioning without hitting production rate limits.
+
+    - ACME directory: `https://localhost:14000/dir`
+    - Pebble challenge test server: port `8055` (HTTP-01), `8053` (DNS)
+
+    Remove these services in production and point `probod.custom-domains.acme.directory` at the real Let's Encrypt endpoint.
+  </Accordion>
+  <Accordion title="keycloak — identity provider (dev / test only)">
+    Keycloak provides a local SAML/OIDC identity provider for testing SSO flows during development. It is pre-configured with a `probo` realm.
+
+    - Image: `quay.io/keycloak/keycloak:latest`
+    - Port: `8082` (mapped from internal `8080`)
+    - Admin credentials: `admin` / `admin`
+
+    Remove this service in production and configure your real identity provider.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Deploying with Docker Compose
+
+<Steps>
+  <Step title="Clone the repository">
+
+```bash
+git clone https://github.com/getprobo/probo.git
+cd probo
+```
+
+  </Step>
+  <Step title="Create a configuration file">
+
+Copy the example config and edit it for your environment:
+
+```bash
+cp cfg/dev.yaml /etc/probod/config.yaml
+```
+
+Update at minimum:
+
+- `probod.base-url` — your public URL
+- `probod.encryption-key` — a strong 32-byte base64 key
+- `probod.identity-and-access-management.password.pepper` — a strong random string
+- `probod.identity-and-access-management.session.cookie.secret` — a strong random string
+- `probod.pg` — your database credentials
+- `probod.aws` — your S3 storage credentials
+
+See the [configuration reference](/self-hosting/configuration) for all options.
+
+<Warning>
+  Replace every placeholder value in `dev.yaml` before deploying. The example file contains hard-coded insecure values intended only for local development.
+</Warning>
+
+  </Step>
+  <Step title="Start the infrastructure">
+
+```bash
+make stack-up
+```
+
+This runs `docker compose -f compose.yaml up -d` and starts all services, including the observability stack. Wait for the health check on the `postgres` service to pass before proceeding.
+
+To stop all services:
+
+```bash
+make stack-down
+```
+
+  </Step>
+  <Step title="Build the binary">
+
+Build the full `probod` binary (includes the frontend console and trust center apps):
+
+```bash
+make build
+```
+
+For backend-only builds (faster, skips frontend compilation):
+
+```bash
+SKIP_APPS=1 make build
+```
+
+The binary is written to `bin/probod`.
+
+  </Step>
+  <Step title="Start probod">
+
+```bash
+./bin/probod -cfg-file /etc/probod/config.yaml
+```
+
+The API server starts on the address configured in `probod.api.addr` (default `localhost:8080`).
+
+  </Step>
+</Steps>
+
+---
+
+## Using the production compose file
+
+`compose.prod.yaml` defines a minimal production stack. It uses the published Docker image instead of a locally built binary and configures `probod` via environment variables.
+
+```bash
+docker compose -f compose.prod.yaml up -d
+```
+
+Required environment variables:
+
+| Variable | Description |
+|---|---|
+| `PROBOD_ENCRYPTION_KEY` | 32-byte base64 encryption key |
+| `AUTH_COOKIE_SECRET` | Cookie signing secret (32+ bytes) |
+| `AUTH_PASSWORD_PEPPER` | Password hashing pepper (32+ bytes) |
+| `TRUST_AUTH_TOKEN_SECRET` | Trust center auth token secret |
+| `PROBOD_BASE_URL` | Public URL of your instance |
+| `API_ADDR` | API listen address |
+| `API_CORS_ALLOWED_ORIGINS` | Comma-separated allowed CORS origins |
+
+<Tip>
+  Pass secrets via a `.env` file or your orchestrator's secret injection mechanism. Never hard-code them in `compose.prod.yaml`.
+</Tip>
+
+---
+
+## Volume mounts and data persistence
+
+| Volume | Service | Contents |
+|---|---|---|
+| `postgres-data` | postgres | All relational data |
+| `seaweedfs-data` | seaweedfs | Uploaded files and object data |
+| `probo-data` | probo | Generated config (when using env-var bootstrap) |
+
+Back up `postgres-data` and `seaweedfs-data` regularly. Probo's PostgreSQL database is the source of truth for all compliance data.
+
+---
+
+## Health checks and restart policies
+
+The `postgres` service has a Docker health check (`pg_isready`). The `probo` service in `compose.prod.yaml` declares a `depends_on` condition on `postgres` with `service_healthy`, so it will not start until the database is ready.
+
+For production deployments, add `restart: unless-stopped` to each service to ensure automatic recovery after a host reboot:
+
+```yaml
+services:
+  probo:
+    restart: unless-stopped
+  postgres:
+    restart: unless-stopped
+  seaweedfs:
+    restart: unless-stopped
+  chrome:
+    restart: unless-stopped
+```
+
+---
+
+## Production considerations
+
+<AccordionGroup>
+  <Accordion title="Use an external PostgreSQL instance">
+    For production, consider using a managed PostgreSQL service (e.g. AWS RDS, Cloud SQL, Supabase) instead of the containerized postgres service. Update `probod.pg.addr` to point at the external host and remove the `postgres` service from your compose file.
+  </Accordion>
+  <Accordion title="Use AWS S3 or a managed object store">
+    SeaweedFS is included for convenience. In production, replace it with a managed S3-compatible service. Set the `probod.aws` section to your provider's credentials and endpoint, and remove the `seaweedfs` service. If using native AWS S3, omit `endpoint` entirely.
+  </Accordion>
+  <Accordion title="Remove dev-only services">
+    The following services from `compose.yaml` are for development only and should not run in production:
+
+    - `mailpit` — replace with real SMTP (`probod.notifications.mailer.smtp`)
+    - `pebble` / `pebble-challtestsrv` — replace with Let's Encrypt production ACME endpoint
+    - `keycloak` — replace with your real identity provider
+  </Accordion>
+  <Accordion title="TLS termination">
+    Terminate TLS at a reverse proxy (nginx, Caddy, AWS ALB) in front of the `probod` API port (`8080`). The trust center HTTPS listener (`8443`) handles its own TLS using certificates provisioned via ACME.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Configuration reference" icon="sliders" href="/self-hosting/configuration">
+    Complete reference for every configuration option.
+  </Card>
+  <Card title="Observability" icon="chart-line" href="/self-hosting/observability">
+    Set up metrics, distributed tracing, and log aggregation.
+  </Card>
+</CardGroup>

@@ -1,0 +1,129 @@
+---
+title: 'Evidence collection'
+description: 'Upload files and link URLs as evidence for compliance measures and tasks.'
+keywords: ['evidence', 'compliance evidence', 'file upload', 'evidence collection', 'audit evidence', 'measures', 'tasks']
+---
+
+Evidence is the proof that your compliance controls are working. In Probo, evidence is collected at the task level within a measure and is used by auditors to verify that controls are implemented and operating effectively.
+
+## Evidence types
+
+Probo supports two evidence types:
+
+| Type | Description |
+|------|-------------|
+| `FILE` | A file uploaded directly to Probo (screenshots, reports, exports, logs) |
+| `LINK` | A URL pointing to external evidence (a shared drive document, a SaaS report URL, a GitHub PR) |
+
+Both types can be attached to a measure and are visible when reviewing compliance status.
+
+## Evidence states
+
+Each piece of evidence has a state that reflects its completeness:
+
+| State | Meaning |
+|-------|---------|
+| `REQUESTED` | Evidence has been requested but not yet provided. The task owner needs to supply this item. |
+| `FULFILLED` | Evidence has been provided and is ready for review. |
+
+When you upload a file or submit a link, the evidence is automatically set to `FULFILLED`. Evidence pre-created during framework import (from task definitions) starts in the `REQUESTED` state until a file or link is submitted.
+
+## How evidence maps to compliance
+
+The relationship between evidence and your compliance hierarchy is:
+
+```
+Framework → Control → Measure → Task → Evidence
+```
+
+Evidence is attached to a **task** within a **measure**. Tasks are the discrete work items that, when completed, demonstrate a measure is implemented. A task can have multiple pieces of evidence, and all evidence for a task rolls up to the parent measure, which is linked to one or more framework controls.
+
+When an auditor reviews a control, they can trace through the control's measures, their tasks, and the attached evidence files and links.
+
+## Uploading file evidence
+
+<Steps>
+  <Step title="Navigate to the measure">
+    Open the measure for which you want to provide evidence. You will see the list of tasks associated with that measure.
+  </Step>
+
+  <Step title="Select a task">
+    Choose the task that the evidence fulfills. Each task may have requested evidence items that specify what is needed.
+  </Step>
+
+  <Step title="Upload the file">
+    Upload a file from your device. Probo stores the file securely and links it to the task and its parent measure. The evidence state is set to `FULFILLED`.
+  </Step>
+</Steps>
+
+<Tip>
+Probo validates uploaded files. Ensure your file is in a supported format and within the size limits before uploading.
+</Tip>
+
+## Linking URL evidence
+
+If your evidence lives outside Probo (for example, in Google Drive, Notion, or a third-party SaaS), you can provide a URL instead of uploading a file.
+
+<Steps>
+  <Step title="Navigate to the measure">
+    Open the relevant measure and select the task you want to fulfill.
+  </Step>
+
+  <Step title="Submit the URL">
+    Provide the URL pointing to the external evidence. Probo records the link as fulfilled evidence of type `LINK`.
+  </Step>
+</Steps>
+
+<Note>
+URLs are stored as-is. Probo does not follow or archive the linked content. Make sure the URL remains accessible to auditors who need to review it.
+</Note>
+
+## AI-generated evidence descriptions
+
+When you upload a file, Probo can automatically generate a human-readable description of the evidence content. This description appears alongside the evidence record and helps auditors quickly understand what the file contains without opening it.
+
+Description generation is asynchronous. The evidence record has a `description_status` field that tracks the generation:
+- **Pending** — description generation has been queued
+- **Done** — description is available
+- **Failed** — generation was unsuccessful (the evidence is still valid; no description will be shown)
+
+## Deleting evidence
+
+You can delete any evidence item. Deleting evidence does not affect the task or measure, but the evidence is permanently removed and cannot be recovered. If the evidence was the only fulfilled item for a task, the task's evidence status returns to outstanding.
+
+## Evidence in framework exports
+
+When you export a framework as a ZIP archive, Probo includes all `FULFILLED` file-type evidence for each measure. Evidence of type `LINK` is not included in the archive (only files can be packaged). See [Compliance frameworks](/features/compliance-frameworks) for more details on framework exports.
+
+<AccordionGroup>
+  <Accordion title="Can one piece of evidence satisfy multiple tasks?">
+    No. Each evidence item is linked to exactly one task within one measure. If the same file or link is relevant to multiple tasks, upload or link it once per task.
+  </Accordion>
+
+  <Accordion title="What file types are supported?">
+    Probo's file validator accepts common document and image formats. If your file is rejected, check that it is in a recognized format and does not exceed the maximum file size.
+  </Accordion>
+
+  <Accordion title="Who can upload evidence?">
+    Any organization member with the appropriate role can upload evidence. Task assignment controls who is responsible for providing evidence, but does not restrict who can upload.
+  </Accordion>
+
+  <Accordion title="How does evidence relate to audits?">
+    Audits are linked to framework controls. When an audit is in progress, auditors review the measures under each control and examine the evidence attached to their tasks. All fulfilled evidence is available to auditors as part of the audit review.
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Compliance frameworks" icon="layers" href="/features/compliance-frameworks">
+    Understand the hierarchy that evidence fits into.
+  </Card>
+  <Card title="Policies and documents" icon="file-text" href="/features/policies-and-documents">
+    Manage policy documents that act as evidence for controls.
+  </Card>
+  <Card title="Risk management" icon="shield-alert" href="/features/risk-management">
+    Link risks to the measures whose evidence demonstrates treatment.
+  </Card>
+  <Card title="Trust center" icon="globe" href="/features/trust-center">
+    Share your compliance posture with customers.
+  </Card>
+</CardGroup>

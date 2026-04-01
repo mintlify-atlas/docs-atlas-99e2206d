@@ -1,0 +1,114 @@
+---
+title: "SSO with SAML"
+description: "Configure SAML 2.0 single sign-on to let your team authenticate through your identity provider."
+---
+
+SAML SSO lets your team sign in to Probo using your existing identity provider (IdP). Once configured, users authenticate through your IdP instead of managing a separate Probo password.
+
+## What you need before starting
+
+- Admin access to your identity provider (Okta, Azure AD, Google Workspace, JumpCloud, or any SAML 2.0-compatible IdP)
+- **Owner** role in your Probo organization
+- The email domain your team uses (for example, `acme.com`)
+
+## Configure SAML in Probo
+
+<Steps>
+  <Step title="Open SSO settings">
+    Navigate to **Settings** → **Security** → **Single Sign-On**.
+  </Step>
+  <Step title="Add a SAML configuration">
+    Click **Add SAML configuration** and enter the following fields from your identity provider:
+
+    | Field | Description |
+    |-------|-------------|
+    | **Email domain** | The domain Probo uses to route SSO logins (e.g. `acme.com`). |
+    | **IdP entity ID** | The unique identifier of your identity provider, found in your IdP's metadata. |
+    | **IdP SSO URL** | The URL Probo redirects users to for authentication. |
+    | **IdP certificate** | The X.509 public certificate your IdP uses to sign SAML assertions. Paste the full PEM-encoded certificate. |
+    | **Auto-signup** | When enabled, new users whose email matches your domain are created automatically on first SSO login. When disabled, users must be pre-provisioned. |
+  </Step>
+  <Step title="Configure your identity provider">
+    Probo exposes the following endpoints to configure in your IdP:
+
+    | Setting | Value |
+    |---------|-------|
+    | **ACS (callback) URL** | `https://app.getprobo.com/api/connect/v1/saml/2.0/consume` |
+    | **Metadata URL** | `https://app.getprobo.com/api/connect/v1/saml/2.0/metadata` |
+    | **Entity ID** | `https://app.getprobo.com/api/connect/v1/saml/2.0/metadata` |
+    | **Name ID format** | Email address |
+
+    Download or copy the Probo SP metadata from **Settings** → **Security** → **Single Sign-On** to import directly into your IdP.
+  </Step>
+  <Step title="Configure attribute mappings">
+    Probo reads the following attributes from the SAML assertion to set up or update a user's profile:
+
+    | Probo attribute | Default SAML attribute | Description |
+    |-----------------|----------------------|-------------|
+    | Email | `email` | User's email address |
+    | First name | `firstName` | Given name |
+    | Last name | `lastName` | Family name |
+    | Role | `role` | Probo role to assign (`OWNER`, `ADMIN`, `EMPLOYEE`, `VIEWER`, `AUDITOR`) |
+
+    You can override these mappings in the **Attribute mappings** section if your IdP uses different attribute names.
+  </Step>
+  <Step title="Test the connection">
+    Before enforcing SSO for all users, test the configuration:
+
+    1. Copy the **Test login URL** shown in the SAML configuration detail page.
+    2. Open the URL in a private browser window.
+    3. Complete the SSO flow through your IdP.
+    4. Confirm you land back in Probo without errors.
+  </Step>
+  <Step title="Set the enforcement policy">
+    Once the connection is working, choose how SSO is enforced:
+
+    | Policy | Behaviour |
+    |--------|-----------|
+    | **Off** | SSO is disabled. Users must sign in with email and password. |
+    | **Optional** | Users can sign in with SSO or with their password. |
+    | **Required** | All users on this domain must sign in through SSO. Password login is blocked. |
+
+    Update the policy in **Settings** → **Security** → **Single Sign-On** → **Edit**.
+  </Step>
+</Steps>
+
+<Warning>
+  Setting enforcement to **Required** immediately blocks password-based logins for users on your domain. Make sure the SSO connection is working correctly before switching to Required.
+</Warning>
+
+## Domain verification
+
+When you add an email domain to your SAML configuration, Probo generates a verification token. Adding a DNS TXT record with this token to your domain proves you control it.
+
+You can find the verification token in **Settings** → **Security** → **Single Sign-On** → your configuration → **Domain verification**.
+
+## How users sign in
+
+Once SSO is configured, users can sign in in two ways:
+
+1. Go to `https://app.getprobo.com`, enter their work email, and Probo redirects them to your IdP automatically.
+2. Use a direct link from your IdP's application launcher (IdP-initiated SSO is supported).
+
+## Role assignment via SAML
+
+If your IdP sends a `role` attribute in the SAML assertion, Probo uses it to assign or update the user's role on each login. The value must match one of the Probo role identifiers: `OWNER`, `ADMIN`, `EMPLOYEE`, `VIEWER`, or `AUDITOR`.
+
+If no role attribute is present, new users are assigned the `EMPLOYEE` role by default.
+
+<Note>
+  Role assignment via SAML does not apply to users provisioned by SCIM. SCIM-sourced profiles are managed by your identity provider.
+</Note>
+
+## Deleting a SAML configuration
+
+To remove a SAML configuration, navigate to **Settings** → **Security** → **Single Sign-On**, open the configuration, and click **Delete**. Users on that domain will no longer be able to use SSO until a new configuration is added.
+
+<CardGroup cols={2}>
+  <Card title="SCIM provisioning" icon="users" href="/access/scim-provisioning">
+    Automate user creation and deprovisioning alongside SSO.
+  </Card>
+  <Card title="Roles and permissions" icon="shield" href="/access/roles-and-permissions">
+    Learn what each role can do in Probo.
+  </Card>
+</CardGroup>

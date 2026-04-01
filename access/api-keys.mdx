@@ -1,0 +1,107 @@
+---
+title: "API keys"
+description: "Create and manage personal API keys for programmatic access to Probo."
+---
+
+Personal API keys let you authenticate to Probo's APIs without an interactive session. Use them for scripts, CI/CD pipelines, or any automated workflow that needs to call the Probo API.
+
+## Personal API keys vs MCP API keys
+
+Probo has two kinds of API keys:
+
+| Type | Purpose | Endpoint |
+|------|---------|----------|
+| **Personal API key** | Programmatic access to the Probo GraphQL API. Carries the same permissions as your user account. | `/api/console/v1/graphql` |
+| **MCP API key** | Used by AI assistant integrations (Claude, Cursor, etc.) to call Probo's Model Context Protocol server. | `/api/mcp/v1` |
+
+This page covers personal API keys. For the MCP API key, see [MCP integration](/integrations/mcp).
+
+## Creating an API key
+
+<Steps>
+  <Step title="Open API keys settings">
+    Click your avatar or account name in the top-right corner, then go to **Account settings** → **API keys**.
+  </Step>
+  <Step title="Create a new key">
+    Click **Create API key** and fill in:
+
+    - **Name** — a label to identify the key (for example, `ci-pipeline` or `monitoring-script`)
+    - **Expires at** — the date and time when the key expires
+  </Step>
+  <Step title="Copy the token">
+    After clicking **Create**, Probo displays the key token **once**. Copy it immediately and store it somewhere safe — you cannot view it again.
+  </Step>
+</Steps>
+
+<Warning>
+  The API key token is shown only once at creation time. If you lose it, you must revoke the key and create a new one.
+</Warning>
+
+## Using an API key
+
+Pass the token as a `Bearer` token in the `Authorization` header of every request:
+
+```bash
+curl -X POST https://app.getprobo.com/api/console/v1/graphql \
+  -H "Authorization: Bearer <your-api-key>" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ viewer { id } }"}'
+```
+
+The key authenticates you as the user who created it. The permissions that apply to the request are the same as that user's role in the organization.
+
+## Permissions
+
+API keys inherit the permissions of the user who created them. There are no separate key-level scopes. If your account has the **Admin** role, API calls made with your key have Admin-level access.
+
+<Note>
+  For least-privilege automation, create a dedicated Probo account with the minimum required role, and generate the API key from that account.
+</Note>
+
+## Key expiry
+
+Every API key has an expiry date set at creation. Once a key expires, all requests using it return `401 Unauthorized`. Probo marks expired keys with an idle-timeout reason and they can no longer be used.
+
+You can check the **Last used at** timestamp on each key to see when it was last active.
+
+## Revoking an API key
+
+<Steps>
+  <Step title="Open API keys settings">
+    Go to **Account settings** → **API keys**.
+  </Step>
+  <Step title="Revoke the key">
+    Find the key you want to revoke and click **Revoke**. The key is invalidated immediately.
+  </Step>
+</Steps>
+
+Any in-flight requests using a revoked key fail immediately with `401 Unauthorized`.
+
+## Security best practices
+
+<AccordionGroup>
+  <Accordion title="Rotate keys regularly">
+    Set short expiry windows and replace keys on a regular schedule. Treat API keys the same as passwords.
+  </Accordion>
+  <Accordion title="Never commit keys to source control">
+    Store API keys in environment variables, secrets managers (AWS Secrets Manager, HashiCorp Vault, GitHub Secrets), or your CI/CD platform's secret store — never hardcoded in code or config files.
+  </Accordion>
+  <Accordion title="Use minimal permissions">
+    Create a dedicated account with only the role required for the automation. Avoid using Owner or Admin keys for automated workflows when a lower-privilege role is sufficient.
+  </Accordion>
+  <Accordion title="Revoke unused keys">
+    Audit your keys periodically. Revoke any key that is no longer in use or that you cannot identify.
+  </Accordion>
+  <Accordion title="Monitor last-used timestamps">
+    The **Last used at** field on each key helps you identify stale or unexpected usage.
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="API reference" icon="code" href="/api-reference/overview">
+    Explore the full Probo API.
+  </Card>
+  <Card title="MCP integration" icon="robot" href="/integrations/mcp">
+    Connect AI assistants to Probo using the MCP API.
+  </Card>
+</CardGroup>

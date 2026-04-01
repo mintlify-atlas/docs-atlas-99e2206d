@@ -1,0 +1,154 @@
+---
+title: "SCIM provisioning"
+description: "Automatically provision and deprovision users in Probo from your identity provider using SCIM 2.0."
+---
+
+SCIM (System for Cross-domain Identity Management) lets your identity provider (IdP) automatically create, update, and deactivate users in Probo. When a new employee joins your company or someone leaves, Probo reflects those changes without any manual work.
+
+## How SCIM works in Probo
+
+- **Create user** — When you assign a user to the Probo app in your IdP, Probo creates their profile and membership automatically.
+- **Update user** — Changes to a user's name, title, department, or other attributes in your IdP are synced to Probo.
+- **Deactivate user** — Removing a user from the Probo app in your IdP deactivates their Probo profile and revokes access.
+
+<Note>
+  SCIM only manages users provisioned through SCIM. Users created manually or via SAML SSO are not affected by SCIM sync operations.
+</Note>
+
+## Before you start
+
+- You need the **Owner** role in your Probo organization.
+- Your identity provider must support SCIM 2.0 (Okta, Azure AD, Google Workspace, JumpCloud, and most enterprise IdPs do).
+
+## Setting up SCIM
+
+<Steps>
+  <Step title="Create the SCIM configuration">
+    Navigate to **Settings** → **Security** → **Provisioning** and click **Enable SCIM**.
+
+    Probo generates a SCIM token and displays your SCIM endpoint URL. Copy both — the token is only shown once.
+  </Step>
+  <Step title="Note your SCIM endpoint">
+    Your SCIM base URL is:
+
+    ```
+    https://app.getprobo.com/api/connect/v1
+    ```
+
+    Enter this as the SCIM base URL in your identity provider.
+  </Step>
+  <Step title="Configure your identity provider">
+    In your IdP's SCIM integration settings, enter:
+
+    | Setting | Value |
+    |---------|-------|
+    | **SCIM base URL** | `https://app.getprobo.com/api/connect/v1` |
+    | **Authentication method** | HTTP Header |
+    | **Authorization header** | `Bearer <your-scim-token>` |
+    | **Supported operations** | Create, Update, Deactivate |
+
+    Refer to your IdP's documentation for exact configuration steps.
+  </Step>
+  <Step title="Assign users">
+    In your IdP, assign the users or groups you want to provision to the Probo application. The IdP will push those users to Probo immediately.
+  </Step>
+</Steps>
+
+## Supported SCIM attributes
+
+Probo accepts the following SCIM user attributes:
+
+| SCIM attribute | Probo profile field |
+|----------------|---------------------|
+| `userName` | Username |
+| `displayName` | Full name |
+| `emails[primary].value` | Email address |
+| `active` | Profile state (active / inactive) |
+| `title` | Position |
+| `userType` | Profile kind |
+| `name.givenName` | Given name |
+| `name.familyName` | Family name |
+| `nickName` | Nickname |
+| `locale` | Locale |
+| `timezone` | Timezone |
+| `preferredLanguage` | Preferred language |
+| `enterprise.employeeNumber` | Employee number |
+| `enterprise.department` | Department |
+| `enterprise.costCenter` | Cost center |
+| `enterprise.organization` | Enterprise organization |
+| `enterprise.division` | Division |
+| `enterprise.manager.value` | Manager reference |
+
+Enterprise attributes use the standard SCIM extension schema: `urn:ietf:params:scim:schemas:extension:enterprise:2.0:User`.
+
+## Regenerating the SCIM token
+
+If your SCIM token is compromised or you need to rotate it:
+
+<Steps>
+  <Step title="Open provisioning settings">
+    Navigate to **Settings** → **Security** → **Provisioning**.
+  </Step>
+  <Step title="Regenerate the token">
+    Click **Regenerate token**. The old token is immediately invalidated.
+  </Step>
+  <Step title="Update your identity provider">
+    Replace the old token with the new one in your IdP's SCIM configuration.
+  </Step>
+</Steps>
+
+<Warning>
+  Regenerating the token invalidates the old one immediately. SCIM sync from your IdP will fail until you update the token in your IdP's settings.
+</Warning>
+
+## SCIM bridge for Google Workspace
+
+If you use Google Workspace, Probo supports a **SCIM bridge** that syncs your directory automatically without requiring Google Workspace's native SCIM support.
+
+To configure the SCIM bridge:
+
+1. Connect your Google Workspace account under **Settings** → **Integrations** → **Google Workspace**.
+2. Navigate to **Settings** → **Security** → **Provisioning** → **Bridge**.
+3. Optionally, add usernames to the **Excluded usernames** list to prevent those accounts from being synced.
+
+The bridge runs in the background and keeps your Probo user directory in sync with Google Workspace.
+
+## SCIM events log
+
+Every SCIM request your identity provider makes to Probo is logged. Use the events log to troubleshoot provisioning issues.
+
+<Steps>
+  <Step title="Open the events log">
+    Navigate to **Settings** → **Security** → **Provisioning** → **Events**.
+  </Step>
+  <Step title="Review events">
+    Each entry shows:
+
+    | Field | Description |
+    |-------|-------------|
+    | **Method** | HTTP method (`POST`, `PUT`, `PATCH`, `DELETE`) |
+    | **Path** | SCIM resource path (e.g. `/Users/...`) |
+    | **Status code** | HTTP response code |
+    | **Username** | The user the operation targeted |
+    | **IP address** | Source IP of the IdP request |
+    | **Error message** | Details if the operation failed |
+    | **Timestamp** | When the event occurred |
+  </Step>
+</Steps>
+
+<Tip>
+  A `409 Conflict` status on a `POST /Users` request usually means the user already exists in Probo. A `401 Unauthorized` means your SCIM token is incorrect or has been regenerated.
+</Tip>
+
+## Deleting the SCIM configuration
+
+To remove SCIM provisioning, navigate to **Settings** → **Security** → **Provisioning** and click **Delete configuration**. Existing users provisioned via SCIM remain in Probo but will no longer be synced.
+
+<CardGroup cols={2}>
+  <Card title="SSO with SAML" icon="shield-halved" href="/access/sso-saml">
+    Combine SCIM provisioning with SAML single sign-on.
+  </Card>
+  <Card title="Roles and permissions" icon="shield" href="/access/roles-and-permissions">
+    Understand what each role can do in Probo.
+  </Card>
+</CardGroup>

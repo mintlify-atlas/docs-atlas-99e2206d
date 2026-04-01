@@ -1,0 +1,172 @@
+---
+title: 'Vendor management'
+description: 'Track third-party vendors, assess their risk, and manage compliance documents such as DPAs and BAAs.'
+keywords: ['vendor', 'third-party', 'risk assessment', 'DPA', 'BAA', 'data processing agreement', 'vendor management']
+---
+
+Probo's vendor management module gives you a central registry for all third-party software and service providers your organization uses. For each vendor you can record contact details, compliance documents, risk assessments, and the specific services they provide.
+
+## Vendor categories
+
+When creating a vendor you assign it to one of the following categories:
+
+| Category | Examples |
+|----------|---------|
+| `ANALYTICS` | Product analytics, BI tools |
+| `CLOUD_MONITORING` | Infrastructure monitoring, APM |
+| `CLOUD_PROVIDER` | AWS, Google Cloud, Azure |
+| `COLLABORATION` | Slack, Microsoft Teams, Notion |
+| `CUSTOMER_SUPPORT` | Zendesk, Intercom |
+| `DATA_STORAGE_AND_PROCESSING` | Snowflake, Databricks |
+| `DOCUMENT_MANAGEMENT` | DocuSign, Google Workspace |
+| `EMPLOYEE_MANAGEMENT` | Rippling, Workday, Gusto |
+| `ENGINEERING` | GitHub, CircleCI, Datadog |
+| `FINANCE` | Stripe, QuickBooks |
+| `IDENTITY_PROVIDER` | Okta, Auth0 |
+| `IT` | IT management and support tools |
+| `MARKETING` | HubSpot, Mailchimp |
+| `OFFICE_OPERATIONS` | Facilities and office management |
+| `PASSWORD_MANAGEMENT` | 1Password, Bitwarden |
+| `PRODUCT_AND_DESIGN` | Figma, Linear |
+| `PROFESSIONAL_SERVICES` | Consulting and advisory firms |
+| `RECRUITING` | Greenhouse, Lever |
+| `SALES` | Salesforce, HubSpot CRM |
+| `SECURITY` | Security tooling and MSSP |
+| `VERSION_CONTROL` | GitHub, GitLab |
+| `OTHER` | Anything that does not fit above |
+
+## Vendor profile fields
+
+Each vendor record can store the following information:
+
+<AccordionGroup>
+  <Accordion title="Identity and contact">
+    - **Name** — display name of the vendor
+    - **Legal name** — official registered entity name
+    - **Description** — what the vendor does and why you use them
+    - **Category** — one of the categories listed above
+    - **Headquarter address** — physical address of the vendor's headquarters
+    - **Countries** — ISO 3166-1 alpha-2 country codes where the vendor operates or processes data
+  </Accordion>
+
+  <Accordion title="URLs">
+    - **Website URL** — vendor's main website
+    - **Privacy policy URL** — link to their privacy policy
+    - **Terms of service URL** — link to their terms of service
+    - **Service level agreement URL** — link to their SLA document
+    - **Data processing agreement URL** — link to their online DPA
+    - **Business associate agreement URL** — link to their online BAA (for HIPAA)
+    - **Subprocessors list URL** — link to their list of subprocessors
+    - **Security page URL** — link to their security overview or trust page
+    - **Trust page URL** — link to their trust center (if they have one)
+    - **Status page URL** — link to their operational status page
+  </Accordion>
+
+  <Accordion title="Certifications">
+    A free-text list of certifications the vendor holds (e.g. `["SOC 2 Type II", "ISO 27001"]`). These are used to display certification badges on your trust center when you enable a vendor there.
+  </Accordion>
+
+  <Accordion title="Ownership">
+    Each vendor has two optional owner fields:
+    - **Business owner** — the team member responsible for the business relationship
+    - **Security owner** — the team member responsible for the security review
+
+    Both owners are members of your organization.
+  </Accordion>
+</AccordionGroup>
+
+## Risk assessments
+
+You perform a vendor risk assessment to formally evaluate how much risk a vendor represents. Each assessment records:
+
+| Field | Options |
+|-------|---------|
+| **Data sensitivity** | `NONE`, `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` |
+| **Business impact** | `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` |
+| **Notes** | Free-text notes on the assessment |
+| **Expires at** | When this assessment should be reviewed again |
+
+<Note>
+Creating a new risk assessment automatically expires any previous non-expired assessment for the same vendor. Only one assessment is active at a time.
+</Note>
+
+### Data sensitivity
+
+Use data sensitivity to classify the most sensitive data the vendor processes on your behalf:
+
+| Level | Meaning |
+|-------|---------|
+| `NONE` | No sensitive data is shared with this vendor |
+| `LOW` | Non-personal or publicly available data |
+| `MEDIUM` | Internal business data |
+| `HIGH` | Personal data or confidential business information |
+| `CRITICAL` | Special category personal data, financial data, or credentials |
+
+### Business impact
+
+Use business impact to reflect how severely your operations would be affected if this vendor became unavailable:
+
+| Level | Meaning |
+|-------|---------|
+| `LOW` | Minor inconvenience; easy to replace |
+| `MEDIUM` | Meaningful disruption; replacement requires effort |
+| `HIGH` | Significant operational impact |
+| `CRITICAL` | Core business operations would stop |
+
+## Compliance documents
+
+For each vendor you can upload and manage three categories of compliance documents:
+
+<Tabs>
+  <Tab title="Business Associate Agreement (BAA)">
+    A BAA is required under HIPAA when a vendor handles Protected Health Information (PHI) on your behalf. Upload the signed BAA file to the vendor record to keep it easily accessible during audits.
+
+    BAA records include metadata such as the document's effective date and an optional description.
+  </Tab>
+
+  <Tab title="Data Processing Agreement (DPA)">
+    A DPA is required under GDPR and other privacy regulations when a vendor processes personal data as a data processor on your behalf. Upload the signed DPA file to track your compliance with Article 28 requirements.
+  </Tab>
+
+  <Tab title="Compliance reports">
+    Compliance reports are point-in-time audit reports from the vendor, such as a SOC 2 Type II report, ISO 27001 certificate, or penetration test summary. Each report record includes a report date so you can track currency.
+
+    You can upload multiple reports per vendor to maintain a history.
+  </Tab>
+</Tabs>
+
+## Vendor contacts
+
+Add individual contacts within a vendor organization for each key relationship:
+- Security team contacts for security reviews
+- Legal or privacy contacts for data protection questions
+- Account managers for contract and billing matters
+
+Each contact has a name, email address, and optional role description.
+
+## Vendor services
+
+Vendor services let you document the specific products or features you use within a vendor's portfolio. For example, within an AWS vendor record you might have separate service entries for S3, RDS, and Lambda. Each service has a name and description.
+
+## AI-powered vendor assessment
+
+Probo can automatically populate a vendor record by analyzing the vendor's public website. Provide the website URL and Probo will attempt to extract the vendor's name, description, category, legal name, headquarters, and relevant compliance URLs.
+
+<Warning>
+AI-generated vendor profiles should be reviewed for accuracy before being used for compliance purposes. Probo does not guarantee the completeness or correctness of extracted information.
+</Warning>
+
+<CardGroup cols={2}>
+  <Card title="Risk management" icon="shield-alert" href="/features/risk-management">
+    Score and track risks associated with your vendors.
+  </Card>
+  <Card title="Trust center" icon="globe" href="/features/trust-center">
+    Show vendor certifications on your public trust center.
+  </Card>
+  <Card title="Compliance frameworks" icon="layers" href="/features/compliance-frameworks">
+    Link vendor controls to framework requirements.
+  </Card>
+  <Card title="Policies and documents" icon="file-text" href="/features/policies-and-documents">
+    Manage vendor-related policies and agreements.
+  </Card>
+</CardGroup>

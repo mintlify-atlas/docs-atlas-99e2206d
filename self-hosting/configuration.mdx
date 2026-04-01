@@ -1,0 +1,457 @@
+---
+title: "Configuration reference"
+description: "All configuration options for self-hosted Probo, based on the probod config file."
+---
+
+Probo is configured through a YAML file passed to `probod` via the `-cfg-file` flag. The entrypoint also supports generating the config from environment variables — see the [Docker deployment](/self-hosting/docker) page for details.
+
+<Warning>
+  Never commit real secrets (encryption keys, passwords, API keys) to version control. Use your secrets manager or environment variable injection at deploy time.
+</Warning>
+
+## Full example config
+
+<CodeGroup>
+
+```yaml config.yaml
+unit:
+  metrics:
+    addr: "0.0.0.0:8081"
+  tracing:
+    addr: "otel-collector:4317"
+    max-batch-size: 512
+    batch-timeout: 5
+    export-timeout: 30
+    max-queue-size: 2048
+
+probod:
+  base-url: "https://probo.example.com"
+  encryption-key: "<your-32-byte-base64-key>"
+  chrome-dp-addr: "chrome:9222"
+
+  identity-and-access-management:
+    signup:
+      enabled: false
+      invitation-token-validity: 3600
+    password:
+      pepper: "<at-least-32-byte-random-string>"
+    session:
+      duration: 7d
+      cookie:
+        name: "SSID"
+        domain: "probo.example.com"
+        secret: "<at-least-32-byte-random-string>"
+        duration: 24
+        secure: true
+
+  trust-center:
+    http-addr: ":8085"
+    https-addr: ":8443"
+
+  api:
+    addr: "0.0.0.0:8080"
+    default:
+      cors:
+        allowed-origins:
+          - "https://probo.example.com"
+
+  pg:
+    addr: "postgres:5432"
+    username: "probod"
+    password: "<db-password>"
+    database: "probod"
+    pool-size: 100
+
+  aws:
+    region: "us-east-1"
+    bucket: "probod"
+    access-key-id: "<s3-access-key>"
+    secret-access-key: "<s3-secret-key>"
+    endpoint: "https://s3.example.com"
+
+  notifications:
+    mailer:
+      sender-name: "Probo"
+      sender-email: "no-reply@example.com"
+      smtp:
+        addr: "smtp.example.com:587"
+        tls-required: true
+      mailer-interval: 60
+
+  agents:
+    providers:
+      openai:
+        type: "openai"
+        api-key: "<openai-api-key>"
+    default:
+      provider: "openai"
+      model-name: "gpt-4o"
+      temperature: 0.1
+      max-tokens: 4096
+
+  custom-domains:
+    renewal-interval: 3600
+    provision-interval: 30
+    cname-target: "custom.getprobo.com"
+    acme:
+      directory: "https://acme-v02.api.letsencrypt.org/directory"
+      email: "admin@example.com"
+      key-type: "EC256"
+
+  connectors:
+    - provider: "SLACK"
+      protocol: "oauth2"
+      config:
+        client-id: "<slack-client-id>"
+        client-secret: "<slack-client-secret>"
+        redirect-uri: "https://probo.example.com/api/console/v1/connectors/complete"
+        auth-url: "https://slack.com/oauth/v2/authorize"
+        token-url: "https://slack.com/api/oauth.v2.access"
+        scopes:
+          - "chat:write"
+          - "channels:join"
+          - "incoming-webhook"
+      settings:
+        signing-secret: "<slack-signing-secret>"
+    - provider: "GOOGLE_WORKSPACE"
+      protocol: "oauth2"
+      config:
+        client-id: "<google-client-id>"
+        client-secret: "<google-client-secret>"
+        redirect-uri: "https://probo.example.com/api/console/v1/connectors/complete"
+        auth-url: "https://accounts.google.com/o/oauth2/v2/auth"
+        token-url: "https://oauth2.googleapis.com/token"
+        scopes:
+          - "https://www.googleapis.com/auth/admin.directory.user.readonly"
+          - "https://www.googleapis.com/auth/admin.directory.userschema.readonly"
+          - "https://www.googleapis.com/auth/admin.directory.group.member.readonly"
+        extra-auth-params:
+          access_type: "offline"
+          prompt: "consent"
+```
+
+</CodeGroup>
+
+---
+
+## Configuration sections
+
+### `probod.base-url`
+
+The public URL at which your Probo instance is reachable. This value is used to construct links in emails, OAuth callbacks, and the trust center.
+
+```yaml
+probod:
+  base-url: "https://probo.example.com"
+```
+
+---
+
+### `probod.encryption-key`
+
+A secret key used to encrypt sensitive data at rest. Must be at least 32 bytes, base64-encoded.
+
+```yaml
+probod:
+  encryption-key: "thisisnotasecretAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+```
+
+<Warning>
+  Generate a strong key with `openssl rand -base64 32`. Rotating this key will invalidate all previously encrypted data.
+</Warning>
+
+---
+
+### `probod.chrome-dp-addr`
+
+The Chrome DevTools Protocol address for the headless Chrome instance used to generate PDF exports.
+
+```yaml
+probod:
+  chrome-dp-addr: "chrome:9222"
+```
+
+---
+
+### `probod.identity-and-access-management`
+
+Controls user signup, invitation tokens, password hashing, and session cookies.
+
+<AccordionGroup>
+  <Accordion title="signup">
+
+| Field | Type | Description |
+|---|---|---|
+| `enabled` | boolean | Allow new users to self-register. Set to `false` to require invitations in production. |
+| `invitation-token-validity` | integer (seconds) | How long an invitation link remains valid. Default: `3600` (1 hour). |
+
+  </Accordion>
+  <Accordion title="password">
+
+| Field | Type | Description |
+|---|---|---|
+| `pepper` | string | A secret string mixed into the password hash before storage. Must be at least 32 bytes. Changing this value invalidates all existing passwords. |
+
+  </Accordion>
+  <Accordion title="session">
+
+| Field | Type | Description |
+|---|---|---|
+| `duration` | string | How long a user session remains valid (e.g. `7d`). |
+| `cookie.name` | string | Name of the session cookie. Default: `SSID`. |
+| `cookie.domain` | string | Domain scope of the cookie. Set to your Probo hostname. |
+| `cookie.secret` | string | HMAC secret for signing cookies. Must be at least 32 bytes. |
+| `cookie.duration` | integer (hours) | Cookie expiry in hours. |
+| `cookie.secure` | boolean | Set to `true` in production to restrict cookies to HTTPS. |
+
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### `probod.trust-center`
+
+Bind addresses for the trust center server, which serves your public compliance portal.
+
+```yaml
+probod:
+  trust-center:
+    http-addr: ":8085"
+    https-addr: ":8443"
+```
+
+| Field | Description |
+|---|---|
+| `http-addr` | Address for the plain HTTP listener. Used for ACME HTTP-01 challenge redirects. |
+| `https-addr` | Address for the TLS listener. Serves the public trust center. |
+
+---
+
+### `probod.api`
+
+Configuration for the main API server.
+
+```yaml
+probod:
+  api:
+    addr: "0.0.0.0:8080"
+    default:
+      cors:
+        allowed-origins:
+          - "https://probo.example.com"
+```
+
+| Field | Description |
+|---|---|
+| `addr` | The address and port the API server listens on. |
+| `default.cors.allowed-origins` | List of origins allowed to make cross-origin requests. Include your console's URL. |
+
+---
+
+### `probod.pg`
+
+PostgreSQL connection settings.
+
+```yaml
+probod:
+  pg:
+    addr: "postgres:5432"
+    username: "probod"
+    password: "<db-password>"
+    database: "probod"
+    pool-size: 100
+```
+
+| Field | Description |
+|---|---|
+| `addr` | Host and port of the PostgreSQL server. |
+| `username` | Database user. |
+| `password` | Database password. |
+| `database` | Database name. |
+| `pool-size` | Maximum number of connections in the connection pool. |
+
+<Tip>
+  For production workloads, tune `pool-size` to match your PostgreSQL `max_connections` setting, leaving headroom for migrations and direct admin queries.
+</Tip>
+
+---
+
+### `probod.aws`
+
+S3-compatible file storage configuration. In production, use AWS S3 or a compatible service such as MinIO or Cloudflare R2.
+
+```yaml
+probod:
+  aws:
+    region: "us-east-1"
+    bucket: "probod"
+    access-key-id: "<access-key>"
+    secret-access-key: "<secret-key>"
+    endpoint: "https://s3.example.com"
+```
+
+| Field | Description |
+|---|---|
+| `region` | AWS region or the region identifier for your S3-compatible service. |
+| `bucket` | Name of the bucket where Probo stores uploaded files. |
+| `access-key-id` | S3 access key. |
+| `secret-access-key` | S3 secret access key. |
+| `endpoint` | Custom endpoint URL for S3-compatible services. Omit to use native AWS S3. |
+
+---
+
+### `probod.notifications.mailer`
+
+Outbound email configuration for notifications such as invitations and alerts.
+
+```yaml
+probod:
+  notifications:
+    mailer:
+      sender-name: "Probo"
+      sender-email: "no-reply@example.com"
+      smtp:
+        addr: "smtp.example.com:587"
+        tls-required: true
+      mailer-interval: 60
+```
+
+| Field | Description |
+|---|---|
+| `sender-name` | Display name shown in the From field. |
+| `sender-email` | From address for outgoing email. |
+| `smtp.addr` | SMTP server address and port. |
+| `smtp.tls-required` | Require STARTTLS when connecting to the SMTP server. Set to `true` in production. |
+| `mailer-interval` | Polling interval in seconds for the email delivery worker. |
+
+---
+
+### `probod.agents`
+
+AI provider configuration used by Probo's automated compliance agents.
+
+```yaml
+probod:
+  agents:
+    providers:
+      openai:
+        type: "openai"
+        api-key: "<openai-api-key>"
+    default:
+      provider: "openai"
+      model-name: "gpt-4o"
+      temperature: 0.1
+      max-tokens: 4096
+```
+
+| Field | Description |
+|---|---|
+| `providers.openai.api-key` | Your OpenAI API key. |
+| `default.provider` | Which provider to use for agent tasks. Currently `openai`. |
+| `default.model-name` | Model to use (e.g. `gpt-4o`). |
+| `default.temperature` | Sampling temperature. Lower values give more deterministic outputs. |
+| `default.max-tokens` | Maximum tokens per agent response. |
+
+<Warning>
+  Store your OpenAI API key as a secret — never hard-code it in a config file that is committed to version control.
+</Warning>
+
+---
+
+### `probod.custom-domains`
+
+Settings for the trust center's custom domain provisioning, including automatic TLS certificate issuance via ACME (Let's Encrypt).
+
+```yaml
+probod:
+  custom-domains:
+    renewal-interval: 3600
+    provision-interval: 30
+    cname-target: "custom.getprobo.com"
+    acme:
+      directory: "https://acme-v02.api.letsencrypt.org/directory"
+      email: "admin@example.com"
+      key-type: "EC256"
+```
+
+| Field | Description |
+|---|---|
+| `renewal-interval` | How often (in seconds) to check for certificates needing renewal. |
+| `provision-interval` | How often (in seconds) to attempt provisioning pending certificates. |
+| `cname-target` | The CNAME target your customers should point their custom domain at. |
+| `acme.directory` | ACME directory URL. Use the Let's Encrypt production URL in production. |
+| `acme.email` | Contact email registered with the ACME provider for expiry notifications. |
+| `acme.key-type` | Key type for issued certificates. `EC256` is recommended. |
+
+<Note>
+  The trust center must be reachable on port 80 for ACME HTTP-01 domain validation to succeed.
+</Note>
+
+---
+
+### `probod.connectors`
+
+OAuth connector configurations for third-party integrations. Each connector entry specifies the provider, OAuth endpoints, credentials, and scopes.
+
+<AccordionGroup>
+  <Accordion title="Slack connector">
+
+```yaml
+probod:
+  connectors:
+    - provider: "SLACK"
+      protocol: "oauth2"
+      config:
+        client-id: "<slack-client-id>"
+        client-secret: "<slack-client-secret>"
+        redirect-uri: "https://probo.example.com/api/console/v1/connectors/complete"
+        auth-url: "https://slack.com/oauth/v2/authorize"
+        token-url: "https://slack.com/api/oauth.v2.access"
+        scopes:
+          - "chat:write"
+          - "channels:join"
+          - "incoming-webhook"
+      settings:
+        signing-secret: "<slack-signing-secret>"
+```
+
+Create a Slack app in the Slack API console and add the redirect URI above to the app's OAuth redirect URLs. The `signing-secret` is used to verify incoming Slack events.
+
+  </Accordion>
+  <Accordion title="Google Workspace connector">
+
+```yaml
+probod:
+  connectors:
+    - provider: "GOOGLE_WORKSPACE"
+      protocol: "oauth2"
+      config:
+        client-id: "<google-client-id>"
+        client-secret: "<google-client-secret>"
+        redirect-uri: "https://probo.example.com/api/console/v1/connectors/complete"
+        auth-url: "https://accounts.google.com/o/oauth2/v2/auth"
+        token-url: "https://oauth2.googleapis.com/token"
+        scopes:
+          - "https://www.googleapis.com/auth/admin.directory.user.readonly"
+          - "https://www.googleapis.com/auth/admin.directory.userschema.readonly"
+          - "https://www.googleapis.com/auth/admin.directory.group.member.readonly"
+        extra-auth-params:
+          access_type: "offline"
+          prompt: "consent"
+```
+
+Create OAuth credentials in the Google Cloud Console. The scopes listed require Domain-Wide Delegation in your Google Workspace admin settings.
+
+  </Accordion>
+</AccordionGroup>
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Docker deployment" icon="docker" href="/self-hosting/docker">
+    Run Probo with Docker Compose, including infrastructure setup and production considerations.
+  </Card>
+  <Card title="Observability" icon="chart-line" href="/self-hosting/observability">
+    Set up metrics, tracing, and log aggregation for your self-hosted instance.
+  </Card>
+</CardGroup>

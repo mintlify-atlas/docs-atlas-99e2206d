@@ -1,0 +1,142 @@
+---
+title: 'Policies and documents'
+description: 'Create, version, and publish compliance policies with approval workflows and signature collection.'
+keywords: ['policies', 'documents', 'approval', 'signatures', 'version control', 'policy management', 'PDF export']
+---
+
+Probo's document module gives you a version-controlled library for all your compliance policies and procedures. Documents move through a structured lifecycle from drafting to approval to publication, with an optional signature workflow to obtain attestations from team members.
+
+## Document types
+
+Documents in Probo carry a type that indicates the nature of the content, such as a policy, procedure, or standard. The type is recorded alongside the document and is visible in search and filtering.
+
+## Document lifecycle
+
+Every document in Probo follows this progression:
+
+<Steps>
+  <Step title="Create a draft">
+    Create a new document with a title, content, classification, and type. The initial version is created as a draft (`DRAFT` status). You can edit the content freely at this stage.
+  </Step>
+
+  <Step title="Add approvers">
+    Add one or more approvers to the document version. Approvers are members of your organization who will review and formally endorse the document before it can be published.
+  </Step>
+
+  <Step title="Request approval">
+    Submit the document version for approval. Probo notifies the designated approvers that their review is needed.
+  </Step>
+
+  <Step title="Approve or reject">
+    Each approver can approve or reject the version. An approval quorum tracks the overall approval status. If a version is rejected, you can revise the content and restart the approval process.
+  </Step>
+
+  <Step title="Publish">
+    Once the approval quorum is satisfied, publish the document version. The published version (`PUBLISHED` status) becomes the current official version of the document. A version number (major and minor) is assigned at publication.
+  </Step>
+</Steps>
+
+## Document and version status
+
+Documents and their versions have separate status fields:
+
+| Level | Field | Values |
+|-------|-------|--------|
+| Document | `status` | `ACTIVE`, `ARCHIVED` |
+| Version | `status` | `DRAFT`, `PUBLISHED` |
+
+A document can have at most one active draft version at a time. Published versions are immutable — to make changes, you create a new draft from the current published version.
+
+## Creating a new version
+
+To update a published policy, create a new draft version from the existing document. This preserves the history of all prior published versions. You can then edit, seek approval, and publish the new version following the same lifecycle.
+
+<Note>
+You can delete a draft version if it has not yet been published. Published versions cannot be deleted.
+</Note>
+
+## Approval workflow
+
+### Adding and removing approvers
+
+You can add or remove approvers from a document version at any time before the version is published. Approvers are members of your organization.
+
+### Approval quorum
+
+Probo tracks approval quorum status, which reflects whether enough approvers have approved the version. You configure the quorum policy per version. The quorum status transitions as approvers submit their decisions.
+
+### Generating a changelog
+
+Probo can automatically generate a changelog entry that summarizes the differences between document versions. This is surfaced as part of the publication process to help reviewers understand what changed.
+
+## Signature collection
+
+After a document is published, you can request signatures from team members to obtain their formal attestation that they have read and understood the policy.
+
+<Steps>
+  <Step title="Request a signature">
+    Send a signature request to one or more organization members. Probo notifies them that a signature is needed.
+  </Step>
+
+  <Step title="Team member signs">
+    The recipient reviews the published document and submits their electronic signature. Signature state transitions from pending to signed.
+  </Step>
+
+  <Step title="Cancel a request">
+    If a request was sent in error or the policy has changed, you can cancel an outstanding signature request before it is signed.
+  </Step>
+</Steps>
+
+Signature states for each request:
+- Pending — request sent, awaiting signature
+- Signed — recipient has signed the document
+
+You can also send bulk signing notifications to remind all pending signatories at once.
+
+## PDF export
+
+You can export any published document version as a PDF. Two export modes are available:
+
+| Mode | Description |
+|------|-------------|
+| Standard PDF | Clean export of the document content |
+| Signable PDF | Includes electronic signature fields for external signing workflows |
+
+PDF exports include the document title, version number, publication date, and formatted content.
+
+## Archiving documents
+
+When a policy is superseded or no longer relevant, you can archive it. Archived documents:
+- Retain their full version history
+- Remain accessible by direct link
+- Are excluded from the default active document list
+- Can be unarchived if needed
+
+<Warning>
+Archiving a document does not delete it or its evidence. Any controls linked to an archived document will retain the link, but you should review whether those controls need to be updated.
+</Warning>
+
+## Linking documents to controls
+
+Published documents can be linked to framework controls in a many-to-many relationship. This lets auditors trace from a control requirement to the specific policy that satisfies it, and it enables framework exports to include relevant policy PDFs automatically.
+
+You can also link documents to risks to show which policies govern the treatment of specific risks.
+
+## Trust center visibility
+
+Each document has a `trust_center_visibility` field with values `NONE`, `PRIVATE`, or `PUBLIC`. This controls whether the document appears in your trust center and who can view it.
+
+<CardGroup cols={2}>
+  <Card title="Compliance frameworks" icon="layers" href="/features/compliance-frameworks">
+    Link policies to framework controls.
+  </Card>
+  <Card title="Trust center" icon="globe" href="/features/trust-center">
+    Share published policies with customers and prospects.
+  </Card>
+  <Card title="Evidence collection" icon="file-check" href="/features/evidence-collection">
+    Attach evidence to the measures your policies describe.
+  </Card>
+  <Card title="Risk management" icon="shield-alert" href="/features/risk-management">
+    Link policies to the risks they treat.
+  </Card>
+</CardGroup>

@@ -1,0 +1,193 @@
+---
+title: "Frameworks"
+description: "Work with compliance frameworks and their associated controls."
+---
+
+Frameworks represent the compliance standards your organization is working toward — such as SOC 2, ISO 27001, GDPR, or HIPAA. Each framework contains controls that you can link to your measures and evidence.
+
+## The Framework object
+
+<ResponseField name="id" type="string" required>
+  Global ID (GID) of the framework.
+</ResponseField>
+
+<ResponseField name="organization_id" type="string" required>
+  GID of the organization this framework belongs to.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Name of the framework (e.g. `"SOC 2 Type II"`, `"ISO 27001"`).
+</ResponseField>
+
+<ResponseField name="description" type="string | null">
+  Optional description of the framework.
+</ResponseField>
+
+<ResponseField name="created_at" type="string (date-time)" required>
+  ISO 8601 timestamp of when the framework was created.
+</ResponseField>
+
+<ResponseField name="updated_at" type="string (date-time)" required>
+  ISO 8601 timestamp of the last update.
+</ResponseField>
+
+## Operations
+
+### listFrameworks
+
+Returns all frameworks for the organization.
+
+**MCP tool:** `listFrameworks`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="size" type="integer">
+  Number of results per page.
+</ParamField>
+
+<ParamField body="cursor" type="string">
+  Pagination cursor from a previous response's `next_cursor`.
+</ParamField>
+
+<ParamField body="order_by" type="object">
+  <Expandable title="order_by fields">
+    <ParamField body="field" type="string">
+      Sort field. Currently only `CREATED_AT` is supported.
+    </ParamField>
+    <ParamField body="direction" type="string">
+      Sort direction. One of: `ASC`, `DESC`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+#### Response
+
+<ResponseField name="frameworks" type="Framework[]" required>
+  Array of framework objects.
+</ResponseField>
+
+<ResponseField name="next_cursor" type="string">
+  Cursor for the next page.
+</ResponseField>
+
+#### Example
+
+<CodeGroup>
+
+```bash MCP (curl)
+curl -X POST https://your-probo-instance/api/mcp/v1 \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "listFrameworks",
+      "arguments": {
+        "organization_id": "gid://probo/Organization/01J5XKZW9QMXP3N6V8HTJA2FKB"
+      }
+    }
+  }'
+```
+
+```graphql GraphQL
+query ListFrameworks($orgId: ID!) {
+  organization(id: $orgId) {
+    frameworks {
+      nodes {
+        id
+        name
+        description
+        createdAt
+      }
+    }
+  }
+}
+```
+
+</CodeGroup>
+
+---
+
+### getFramework
+
+Returns a single framework by ID.
+
+**MCP tool:** `getFramework`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the framework.
+</ParamField>
+
+#### Response
+
+<ResponseField name="framework" type="Framework" required>
+  The requested framework object.
+</ResponseField>
+
+---
+
+### addFramework
+
+Creates a new framework.
+
+**MCP tool:** `addFramework`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Framework name.
+</ParamField>
+
+<ParamField body="description" type="string">
+  Optional description.
+</ParamField>
+
+#### Response
+
+<ResponseField name="framework" type="Framework" required>
+  The created framework object.
+</ResponseField>
+
+---
+
+### updateFramework
+
+Updates an existing framework.
+
+**MCP tool:** `updateFramework`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the framework to update.
+</ParamField>
+
+<ParamField body="name" type="string">
+  Updated name.
+</ParamField>
+
+<ParamField body="description" type="string | null">
+  Updated description.
+</ParamField>
+
+#### Response
+
+<ResponseField name="framework" type="Framework" required>
+  The updated framework object.
+</ResponseField>
+
+<Note>
+  Probo ships with pre-built framework templates for SOC 2, ISO 27001, GDPR, and HIPAA. These appear automatically when you enable a compliance program in the web app. Use `addFramework` for custom frameworks.
+</Note>

@@ -1,0 +1,242 @@
+---
+title: "Assets"
+description: "Track physical and virtual assets in your organization's asset register."
+---
+
+Assets represent things of value that your organization needs to protect — servers, databases, laptops, SaaS applications, and other resources. Each asset records what data it stores and who is responsible for it.
+
+## The Asset object
+
+<ResponseField name="id" type="string" required>
+  Global ID (GID) of the asset.
+</ResponseField>
+
+<ResponseField name="organization_id" type="string" required>
+  GID of the organization this asset belongs to.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Name of the asset.
+</ResponseField>
+
+<ResponseField name="amount" type="integer" required>
+  Quantity of this asset (e.g. number of laptops of this model).
+</ResponseField>
+
+<ResponseField name="owner_id" type="string" required>
+  GID of the profile responsible for this asset.
+</ResponseField>
+
+<ResponseField name="asset_type" type="AssetType" required>
+  Whether the asset is physical or virtual. See [AssetType enum](#assettype-enum).
+</ResponseField>
+
+<ResponseField name="data_types_stored" type="string" required>
+  Description of the types of data stored on or processed by this asset.
+</ResponseField>
+
+<ResponseField name="snapshot_id" type="string | null">
+  GID of the snapshot this asset record belongs to, or null for live data.
+</ResponseField>
+
+<ResponseField name="created_at" type="string (date-time)" required>
+  ISO 8601 timestamp of when the asset was created.
+</ResponseField>
+
+<ResponseField name="updated_at" type="string (date-time)" required>
+  ISO 8601 timestamp of the last update.
+</ResponseField>
+
+## AssetType enum
+
+| Value | Description |
+|-------|-------------|
+| `PHYSICAL` | A tangible, physical asset (e.g. laptop, server, USB drive) |
+| `VIRTUAL` | A digital or cloud-based asset (e.g. SaaS application, database, repository) |
+
+## Operations
+
+### listAssets
+
+Returns all assets for the organization.
+
+**MCP tool:** `listAssets`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="size" type="integer">
+  Number of results per page.
+</ParamField>
+
+<ParamField body="cursor" type="string">
+  Pagination cursor from a previous response's `next_cursor`.
+</ParamField>
+
+<ParamField body="order_by" type="object">
+  <Expandable title="order_by fields">
+    <ParamField body="field" type="string">
+      Sort field. One of: `CREATED_AT`, `AMOUNT`.
+    </ParamField>
+    <ParamField body="direction" type="string">
+      Sort direction. One of: `ASC`, `DESC`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="filter" type="object">
+  <Expandable title="filter fields">
+    <ParamField body="snapshot_id" type="string | null">
+      Filter by snapshot GID. Defaults to `null`, which returns current live data. Pass a snapshot GID to retrieve assets as they were at that point in time.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+#### Response
+
+<ResponseField name="assets" type="Asset[]" required>
+  Array of asset objects.
+</ResponseField>
+
+<ResponseField name="next_cursor" type="string">
+  Cursor for the next page.
+</ResponseField>
+
+---
+
+### getAsset
+
+Returns a single asset by ID.
+
+**MCP tool:** `getAsset`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the asset.
+</ParamField>
+
+#### Response
+
+<ResponseField name="asset" type="Asset" required>
+  The requested asset object.
+</ResponseField>
+
+---
+
+### addAsset
+
+Creates a new asset.
+
+**MCP tool:** `addAsset`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Asset name.
+</ParamField>
+
+<ParamField body="amount" type="integer" required>
+  Quantity of the asset.
+</ParamField>
+
+<ParamField body="owner_id" type="string" required>
+  GID of the asset owner profile.
+</ParamField>
+
+<ParamField body="asset_type" type="AssetType" required>
+  Asset type (`PHYSICAL` or `VIRTUAL`).
+</ParamField>
+
+<ParamField body="data_types_stored" type="string" required>
+  Description of data stored on this asset.
+</ParamField>
+
+<ParamField body="vendor_ids" type="string[]">
+  GIDs of vendors associated with this asset (e.g. the cloud provider hosting a virtual asset).
+</ParamField>
+
+#### Response
+
+<ResponseField name="asset" type="Asset" required>
+  The created asset object.
+</ResponseField>
+
+---
+
+### updateAsset
+
+Updates an existing asset.
+
+**MCP tool:** `updateAsset`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the asset to update.
+</ParamField>
+
+<ParamField body="name" type="string">
+  Updated name.
+</ParamField>
+
+<ParamField body="amount" type="integer">
+  Updated quantity.
+</ParamField>
+
+<ParamField body="owner_id" type="string | null">
+  Updated owner GID.
+</ParamField>
+
+<ParamField body="asset_type" type="AssetType">
+  Updated asset type.
+</ParamField>
+
+<ParamField body="data_types_stored" type="string">
+  Updated data types description.
+</ParamField>
+
+<ParamField body="vendor_ids" type="string[]">
+  Updated list of associated vendor GIDs.
+</ParamField>
+
+#### Response
+
+<ResponseField name="asset" type="Asset" required>
+  The updated asset object.
+</ResponseField>
+
+## Example
+
+```bash
+curl -X POST https://your-probo-instance/api/mcp/v1 \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "addAsset",
+      "arguments": {
+        "organization_id": "gid://probo/Organization/01J5XKZW9QMXP3N6V8HTJA2FKB",
+        "name": "Production PostgreSQL database",
+        "amount": 1,
+        "owner_id": "gid://probo/Profile/01J5XKZW9QMXP3N6V8HTJA2FKC",
+        "asset_type": "VIRTUAL",
+        "data_types_stored": "Customer PII, payment records, authentication credentials"
+      }
+    }
+  }'
+```
+
+<Note>
+  Assets support snapshots — point-in-time records used during audits. Pass a `snapshot_id` to the `listAssets` filter to retrieve the asset register as it existed at a specific audit period.
+</Note>

@@ -1,0 +1,296 @@
+---
+title: "Measures"
+description: "Manage security and compliance measures — the controls your organization implements to address risks."
+---
+
+Measures are the concrete actions your organization takes to manage risk and maintain compliance. Each measure tracks its implementation state and can be linked to risks, framework controls, tasks, and evidence.
+
+## The Measure object
+
+<ResponseField name="id" type="string" required>
+  Global ID (GID) of the measure.
+</ResponseField>
+
+<ResponseField name="category" type="string" required>
+  Category of the measure (free-form string, e.g. `"Access Control"`, `"Encryption"`).
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Name of the measure.
+</ResponseField>
+
+<ResponseField name="description" type="string | null">
+  Optional description of the measure.
+</ResponseField>
+
+<ResponseField name="state" type="MeasureState" required>
+  Current implementation state. See [MeasureState enum](#measurestate-enum).
+</ResponseField>
+
+<ResponseField name="created_at" type="string (date-time)" required>
+  ISO 8601 timestamp of when the measure was created.
+</ResponseField>
+
+<ResponseField name="updated_at" type="string (date-time)" required>
+  ISO 8601 timestamp of the last update.
+</ResponseField>
+
+## MeasureState enum
+
+| Value | Description |
+|-------|-------------|
+| `NOT_STARTED` | The measure has not yet been started |
+| `IN_PROGRESS` | The measure is currently being implemented |
+| `NOT_APPLICABLE` | The measure does not apply to this organization |
+| `IMPLEMENTED` | The measure is fully implemented |
+
+## Operations
+
+### listMeasures
+
+Returns all measures for the organization.
+
+**MCP tool:** `listMeasures`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="size" type="integer">
+  Number of results per page.
+</ParamField>
+
+<ParamField body="cursor" type="string">
+  Pagination cursor from a previous response's `next_cursor`.
+</ParamField>
+
+<ParamField body="order_by" type="object">
+  <Expandable title="order_by fields">
+    <ParamField body="field" type="string">
+      Sort field. One of: `CREATED_AT`, `NAME`.
+    </ParamField>
+    <ParamField body="direction" type="string">
+      Sort direction. One of: `ASC`, `DESC`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="filter" type="object">
+  <Expandable title="filter fields">
+    <ParamField body="query" type="string">
+      Full-text search query.
+    </ParamField>
+    <ParamField body="state" type="MeasureState">
+      Filter by implementation state.
+    </ParamField>
+    <ParamField body="category" type="string">
+      Filter by category.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+#### Response
+
+<ResponseField name="measures" type="Measure[]" required>
+  Array of measure objects.
+</ResponseField>
+
+<ResponseField name="next_cursor" type="string">
+  Cursor for the next page.
+</ResponseField>
+
+---
+
+### getMeasure
+
+Returns a single measure by ID.
+
+**MCP tool:** `getMeasure`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the measure.
+</ParamField>
+
+#### Response
+
+<ResponseField name="measure" type="Measure" required>
+  The requested measure object.
+</ResponseField>
+
+---
+
+### addMeasure
+
+Creates a new measure.
+
+**MCP tool:** `addMeasure`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Measure name.
+</ParamField>
+
+<ParamField body="category" type="string" required>
+  Measure category.
+</ParamField>
+
+<ParamField body="description" type="string">
+  Optional description.
+</ParamField>
+
+#### Response
+
+<ResponseField name="measure" type="Measure" required>
+  The created measure object.
+</ResponseField>
+
+---
+
+### updateMeasure
+
+Updates an existing measure.
+
+**MCP tool:** `updateMeasure`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the measure to update.
+</ParamField>
+
+<ParamField body="name" type="string">
+  Updated name.
+</ParamField>
+
+<ParamField body="category" type="string">
+  Updated category.
+</ParamField>
+
+<ParamField body="description" type="string | null">
+  Updated description.
+</ParamField>
+
+<ParamField body="state" type="MeasureState">
+  Updated implementation state.
+</ParamField>
+
+#### Response
+
+<ResponseField name="measure" type="Measure" required>
+  The updated measure object.
+</ResponseField>
+
+---
+
+### deleteMeasure
+
+Deletes a measure.
+
+**MCP tool:** `deleteMeasure`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the measure to delete.
+</ParamField>
+
+#### Response
+
+<ResponseField name="deleted_measure_id" type="string" required>
+  GID of the deleted measure.
+</ResponseField>
+
+---
+
+### linkMeasure
+
+Links a measure to another resource (a risk or a control).
+
+**MCP tool:** `linkMeasure`
+
+#### Parameters
+
+<ParamField body="measure_id" type="string" required>
+  GID of the measure.
+</ParamField>
+
+<ParamField body="resource_id" type="string" required>
+  GID of the resource to link — a risk or a framework control.
+</ParamField>
+
+---
+
+### unlinkMeasure
+
+Removes a link between a measure and another resource.
+
+**MCP tool:** `unlinkMeasure`
+
+#### Parameters
+
+<ParamField body="measure_id" type="string" required>
+  GID of the measure.
+</ParamField>
+
+<ParamField body="resource_id" type="string" required>
+  GID of the resource to unlink.
+</ParamField>
+
+## Related list operations
+
+Use these tools to retrieve resources associated with a measure.
+
+### listMeasureRisks
+
+Returns risks linked to a measure.
+
+**MCP tool:** `listMeasureRisks`
+
+<ParamField body="measure_id" type="string" required>
+  GID of the measure.
+</ParamField>
+
+---
+
+### listMeasureControls
+
+Returns framework controls linked to a measure.
+
+**MCP tool:** `listMeasureControls`
+
+<ParamField body="measure_id" type="string" required>
+  GID of the measure.
+</ParamField>
+
+---
+
+### listMeasureTasks
+
+Returns tasks linked to a measure.
+
+**MCP tool:** `listMeasureTasks`
+
+<ParamField body="measure_id" type="string" required>
+  GID of the measure.
+</ParamField>
+
+---
+
+### listMeasureEvidences
+
+Returns evidence items collected for a measure.
+
+**MCP tool:** `listMeasureEvidences`
+
+<ParamField body="measure_id" type="string" required>
+  GID of the measure.
+</ParamField>

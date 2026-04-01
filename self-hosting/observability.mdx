@@ -1,0 +1,140 @@
+---
+title: "Observability"
+description: "Monitoring, distributed tracing, and log aggregation for self-hosted Probo."
+---
+
+Probo emits OpenTelemetry metrics and traces. The development Docker Compose stack ships a pre-wired observability stack based on Grafana, Prometheus, Loki, and Tempo. You can reuse this setup or integrate with your existing observability infrastructure.
+
+## Observability stack
+
+<AccordionGroup>
+  <Accordion title="Grafana — metrics dashboards (port 3001)">
+    Grafana is pre-configured with data sources for Prometheus, Loki, and Tempo. Access it at `http://your-instance:3001`.
+
+    The development stack enables anonymous admin access. For production, configure Grafana authentication before exposing it.
+
+    Data sources provisioned automatically:
+
+    | Name | Type | URL |
+    |---|---|---|
+    | Prometheus | prometheus | `http://prometheus:9191` |
+    | Loki | loki | `http://loki:3100` |
+    | Tempo | tempo | `http://tempo:3200` |
+  </Accordion>
+  <Accordion title="Prometheus — metrics collection (port 9191)">
+    Prometheus scrapes metrics from `probod`'s metrics endpoint and from Tempo. It listens on `:9191` (non-standard port to avoid conflicts).
+
+    Probo exposes its metrics endpoint at the address configured in `unit.metrics.addr`. Point Prometheus at that address to collect application metrics.
+
+    Default scrape interval: `15s`.
+  </Accordion>
+  <Accordion title="Loki — log aggregation (port 3100)">
+    Loki collects structured logs from the stack. Logs are queryable in Grafana's Explore view using LogQL.
+
+    Loki is linked to Tempo via a derived field on `traceID`, allowing you to jump from a log line directly to the corresponding trace in Tempo.
+  </Accordion>
+  <Accordion title="Tempo — distributed tracing (port 4317)">
+    Tempo receives traces over OTLP (gRPC on port `4317`) from `probod`. Traces are stored locally and are accessible from Grafana.
+
+    The `unit.tracing.addr` config option controls where `probod` sends traces. In the dev stack, this points at the `tempo` container.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## OpenTelemetry configuration
+
+Configure metrics and tracing export in the `unit` section of your config file.
+
+<CodeGroup>
+
+```yaml config.yaml
+unit:
+  metrics:
+    addr: "0.0.0.0:8081"
+  tracing:
+    addr: "otel-collector:4317"
+    max-batch-size: 512
+    batch-timeout: 5
+    export-timeout: 30
+    max-queue-size: 2048
+```
+
+</CodeGroup>
+
+### `unit.metrics`
+
+| Field | Description |
+|---|---|
+| `addr` | Address where `probod` exposes its Prometheus-compatible metrics endpoint. Set to `0.0.0.0:8081` to allow scraping from other containers. |
+
+### `unit.tracing`
+
+| Field | Description |
+|---|---|
+| `addr` | OTLP gRPC endpoint to send traces to. Set to your Tempo or OpenTelemetry Collector address. Leave empty to disable tracing. |
+| `max-batch-size` | Maximum number of spans in a single export batch. Default: `512`. |
+| `batch-timeout` | Seconds to wait before exporting a non-full batch. Default: `5`. |
+| `export-timeout` | Timeout in seconds for a single export request. Default: `30`. |
+| `max-queue-size` | Maximum number of spans queued before dropping. Default: `2048`. |
+
+<Tip>
+  In production, route traces through an [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/) for batching, filtering, and fan-out to multiple backends.
+</Tip>
+
+---
+
+## Key signals to monitor
+
+### HTTP request rates
+
+Monitor the rate and latency of incoming HTTP requests to the API (`probod.api.addr`) and trust center (`probod.trust-center`). Unexpected spikes can indicate traffic anomalies or misconfigured clients.
+
+### Database pool utilization
+
+Track the ratio of active to maximum connections defined in `probod.pg.pool-size`. Saturation of the pool causes request queuing. If you consistently see high utilization, increase `pool-size` and ensure your PostgreSQL `max_connections` is set accordingly.
+
+### Background worker queues
+
+Probo runs background workers for email delivery, Slack notifications, custom domain provisioning, and certificate renewal. Monitor these via the worker-specific metrics to detect backlogs or stalled jobs.
+
+---
+
+## Structured logging
+
+Probo uses structured, context-aware logging throughout. Log entries include fields such as request IDs, trace IDs, and opaque identifiers.
+
+<Warning>
+  Probo's logging policy prohibits logging PII, PHI, or other sensitive data (emails, names, passwords, tokens). If you see sensitive data in logs, please report it via the [security policy](https://github.com/getprobo/probo/blob/main/SECURITY.md).
+</Warning>
+
+Trace IDs are included in log lines, allowing you to correlate a log entry with its full distributed trace in Tempo via Grafana's derived field link.
+
+---
+
+## Accessing Grafana
+
+Open `http://your-instance:3001` in your browser. The development stack grants anonymous admin access. For production, configure Grafana authentication:
+
+```yaml
+# In your Grafana environment config, disable anonymous access:
+GF_AUTH_ANONYMOUS_ENABLED: "false"
+GF_AUTH_DISABLE_LOGIN_FORM: "false"
+```
+
+From the Grafana sidebar:
+
+- **Explore → Prometheus** — query raw metrics with PromQL
+- **Explore → Loki** — search and filter structured logs with LogQL
+- **Explore → Tempo** — search traces by service name, trace ID, or duration
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Configuration reference" icon="sliders" href="/self-hosting/configuration">
+    Full reference for `unit.tracing` and `unit.metrics` options.
+  </Card>
+  <Card title="Docker deployment" icon="docker" href="/self-hosting/docker">
+    Start the full observability stack with Docker Compose.
+  </Card>
+</CardGroup>

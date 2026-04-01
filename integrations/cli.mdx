@@ -1,0 +1,352 @@
+---
+title: "CLI (prb)"
+description: "Manage Probo resources from the command line with prb"
+---
+
+`prb` is the official command-line interface for Probo. Use it to manage risks, vendors, controls, evidence, and more — from scripts, CI pipelines, or your terminal.
+
+## Installation
+
+<CodeGroup>
+
+```bash Build from source
+git clone https://github.com/getprobo/probo.git
+cd probo
+make build
+# Binary is at bin/prb
+```
+
+```bash Go install
+go install go.probo.inc/probo/cmd/prb@latest
+```
+
+</CodeGroup>
+
+## Authentication
+
+Run `prb auth login` to configure the CLI. It will prompt you for your Probo hostname, API token, and a default organization ID.
+
+```bash
+prb auth login
+```
+
+For non-interactive use (CI pipelines):
+
+```bash
+prb auth login \
+  --hostname app.getprobo.com \
+  --token YOUR_API_KEY \
+  --org YOUR_ORG_ID
+```
+
+<Note>
+  Generate an API key in Probo under **Settings → Access → API keys** (see [API keys](/access/api-keys)).
+</Note>
+
+### Configuration file
+
+`prb` stores credentials in a YAML config file. The location follows the OS convention:
+
+| OS | Path |
+|----|------|
+| macOS | `~/Library/Application Support/prb/config.yaml` |
+| Linux | `~/.config/prb/config.yaml` |
+| Windows | `%APPDATA%\prb\config.yaml` |
+
+## Environment variables
+
+| Variable | Effect |
+|----------|--------|
+| `PROBO_NO_INTERACTIVE=1` | Disable all interactive prompts |
+| `CI=true` | Same as `PROBO_NO_INTERACTIVE=1` |
+| `NO_COLOR` | Disable ANSI color output |
+
+You can also pass `--no-interactive` or `--no-color` as persistent flags to any command.
+
+## Commands
+
+### `prb auth` — authentication
+
+| Subcommand | Description |
+|------------|-------------|
+| `prb auth login` | Authenticate with a Probo host |
+| `prb auth logout` | Remove stored credentials |
+| `prb auth status` | Show current authentication status |
+
+```bash
+# Interactive login
+prb auth login
+
+# Non-interactive
+prb auth login --hostname app.getprobo.com --token TOKEN --org ORG_ID
+```
+
+---
+
+### `prb org` — organizations
+
+| Subcommand | Description |
+|------------|-------------|
+| `prb org list` | List organizations the authenticated user belongs to |
+
+---
+
+### `prb risk` — risk management
+
+| Subcommand | Description |
+|------------|-------------|
+| `prb risk list` | List risks in an organization |
+| `prb risk create` | Create a new risk |
+| `prb risk view <id>` | View a risk |
+| `prb risk update <id>` | Update a risk |
+| `prb risk delete <id>` | Delete a risk |
+
+**Key flags for `prb risk list`:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--org` | config default | Organization ID |
+| `--limit, -L` | 30 | Maximum number of results |
+| `--filter, -q` | | Search query |
+| `--order-by` | | Field to sort by (`CREATED_AT`, `NAME`, `CATEGORY`, `TREATMENT`, `INHERENT_RISK_SCORE`, `RESIDUAL_RISK_SCORE`) |
+| `--order-direction` | `DESC` | Sort direction (`ASC`, `DESC`) |
+| `--output, -o` | `table` | Output format (`table`, `json`) |
+
+**Key flags for `prb risk create`:**
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--name` | Yes (interactive fallback) | Risk name |
+| `--category` | Yes (interactive fallback) | Risk category |
+| `--treatment` | Yes (interactive fallback) | `MITIGATED`, `ACCEPTED`, `AVOIDED`, or `TRANSFERRED` |
+| `--inherent-likelihood` | Yes | Likelihood score 1–5 |
+| `--inherent-impact` | Yes | Impact score 1–5 |
+| `--residual-likelihood` | | Residual likelihood 1–5 |
+| `--residual-impact` | | Residual impact 1–5 |
+| `--description` | | Risk description |
+| `--note` | | Risk note |
+| `--owner` | | Owner profile ID |
+
+```bash
+# Create a risk interactively
+prb risk create --inherent-likelihood 3 --inherent-impact 4
+
+# Create a risk non-interactively
+prb risk create \
+  --name "Data breach via third-party vendor" \
+  --category "Security" \
+  --treatment MITIGATED \
+  --inherent-likelihood 3 \
+  --inherent-impact 4
+
+# List risks as JSON
+prb risk list --output json
+```
+
+---
+
+### `prb control` — control management
+
+| Subcommand | Description |
+|------------|-------------|
+| `prb control list` | List controls |
+| `prb control create` | Create a new control |
+| `prb control view <id>` | View a control |
+| `prb control update <id>` | Update a control |
+| `prb control delete <id>` | Delete a control |
+
+---
+
+### `prb framework` — framework management
+
+| Subcommand | Description |
+|------------|-------------|
+| `prb framework list` | List frameworks |
+| `prb framework create` | Create a new framework |
+| `prb framework view <id>` | View a framework |
+| `prb framework update <id>` | Update a framework |
+| `prb framework delete <id>` | Delete a framework |
+
+---
+
+### `prb evidence` — evidence management
+
+| Subcommand | Description |
+|------------|-------------|
+| `prb evidence list` | List evidence records |
+| `prb evidence view <id>` | View an evidence record |
+| `prb evidence delete <id>` | Delete an evidence record |
+
+---
+
+### `prb user` — user management
+
+| Subcommand | Description |
+|------------|-------------|
+| `prb user list` | List users in an organization |
+| `prb user view <id>` | View a user profile |
+
+---
+
+### `prb finding` — finding management
+
+| Subcommand | Description |
+|------------|-------------|
+| `prb finding list` | List findings (nonconformities, observations, exceptions) |
+| `prb finding create` | Create a new finding |
+| `prb finding view <id>` | View a finding |
+| `prb finding update <id>` | Update a finding |
+| `prb finding delete <id>` | Delete a finding |
+
+---
+
+### `prb soa` — statement of applicability
+
+| Subcommand | Description |
+|------------|-------------|
+| `prb soa list` | List statements of applicability |
+| `prb soa create` | Create a new SoA |
+| `prb soa view <id>` | View an SoA |
+| `prb soa update <id>` | Update an SoA |
+| `prb soa delete <id>` | Delete an SoA |
+| `prb soa statement` | Manage individual applicability statements within an SoA |
+
+---
+
+### `prb webhook` — webhook subscriptions
+
+| Subcommand | Description |
+|------------|-------------|
+| `prb webhook list` | List webhook subscriptions |
+| `prb webhook create` | Create a new webhook subscription |
+| `prb webhook view <id>` | View a webhook subscription |
+| `prb webhook update <id>` | Update a webhook subscription |
+| `prb webhook delete <id>` | Delete a webhook subscription |
+| `prb webhook event` | List or view webhook events |
+
+---
+
+### `prb context` — organization context
+
+Manage the structured context sections that describe your organization to AI agents (product, architecture, team, processes, customers).
+
+| Subcommand | Description |
+|------------|-------------|
+| `prb context get` | Get the current organization context |
+| `prb context update` | Update one or more context sections |
+
+```bash
+# View the current context
+prb context get --org YOUR_ORG_ID
+
+# View as JSON
+prb context get --output json
+```
+
+The organization context is used by Probo's AI agents to understand your company's product, technical architecture, team structure, processes, and customer base when generating compliance suggestions.
+
+---
+
+### `prb config` — CLI configuration
+
+| Subcommand | Description |
+|------------|-------------|
+| `prb config list` | List all configuration keys and values |
+| `prb config get <key>` | Get the value of a configuration key |
+| `prb config set <key> <value>` | Set a configuration key |
+
+Available keys: `editor`, `browser`, `pager`, `prompt`, `http_timeout`.
+
+---
+
+### `prb version` — show version
+
+```bash
+prb version
+```
+
+### `prb api` — raw API access
+
+Send raw GraphQL queries to the Probo API.
+
+---
+
+### `prb browse` — open in browser
+
+Open the current organization in a browser.
+
+---
+
+### `prb auditlog` — audit log
+
+Browse the organization audit log.
+
+---
+
+## Shell completion
+
+Generate and install tab-completion for your shell:
+
+<CodeGroup>
+
+```bash bash
+# Load in current session
+source <(prb completion bash)
+
+# Install permanently (Linux)
+prb completion bash > /etc/bash_completion.d/prb
+
+# Install permanently (macOS with Homebrew)
+prb completion bash > $(brew --prefix)/etc/bash_completion.d/prb
+```
+
+```bash zsh
+# Load in current session
+source <(prb completion zsh)
+
+# Install permanently
+prb completion zsh > "${fpath[1]}/_prb"
+```
+
+```bash fish
+# Load in current session
+prb completion fish | source
+
+# Install permanently
+prb completion fish > ~/.config/fish/completions/prb.fish
+```
+
+```powershell PowerShell
+# Load in current session
+prb completion powershell | Out-String | Invoke-Expression
+
+# Install permanently
+prb completion powershell > prb.ps1
+```
+
+</CodeGroup>
+
+## Using prb in CI
+
+Set `PROBO_NO_INTERACTIVE=1` (or `CI=true`) to disable all interactive prompts. Always pass `--org` explicitly, or configure a default organization during login.
+
+```bash
+export PROBO_NO_INTERACTIVE=1
+
+prb auth login \
+  --hostname app.getprobo.com \
+  --token "$PROBO_API_KEY" \
+  --org "$PROBO_ORG_ID"
+
+# List risks as JSON for processing
+prb risk list --output json
+```
+
+<CardGroup cols={2}>
+  <Card title="API keys" icon="key" href="/access/api-keys">
+    Create API keys for authenticating prb and other integrations.
+  </Card>
+  <Card title="MCP integration" icon="robot" href="/integrations/mcp">
+    Connect AI agents directly to Probo via the Model Context Protocol.
+  </Card>
+</CardGroup>

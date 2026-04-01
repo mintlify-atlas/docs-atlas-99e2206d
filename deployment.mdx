@@ -1,0 +1,222 @@
+---
+title: "Deployment"
+description: "Deploy Probo on your own infrastructure using Docker Compose."
+keywords: ["deployment", "self-hosted", "docker", "docker compose", "production", "probo"]
+---
+
+Probo ships as a single Docker image (`ghcr.io/getprobo/probo`) that bundles the Go server and the embedded frontend assets. For production use, you run it alongside PostgreSQL, SeaweedFS (S3-compatible file storage), and a headless Chrome instance for PDF generation.
+
+A reference `compose.prod.yaml` is included in the repository to get you started.
+
+## Prerequisites
+
+- Docker and Docker Compose
+- A PostgreSQL 17 instance (or use the bundled Compose service)
+- An S3-compatible object store — [SeaweedFS](https://github.com/seaweedfs/seaweedfs) is included in the reference stack
+- An SMTP server for email notifications
+- An OpenAI API key if you want to use the AI-assisted compliance features
+
+## Environment variables
+
+The `probod` container is configured via environment variables. The `probod-bootstrap` binary (run automatically by the container entrypoint) generates a config file from those variables at startup.
+
+The following variables are required:
+
+| Variable | Description |
+|---|---|
+| `PROBOD_ENCRYPTION_KEY` | Base64-encoded 32-byte key used to encrypt sensitive data at rest |
+| `AUTH_COOKIE_SECRET` | Secret used to sign session cookies (at least 32 bytes) |
+| `AUTH_PASSWORD_PEPPER` | Pepper added to password hashes before storage (at least 32 bytes) |
+| `TRUST_AUTH_TOKEN_SECRET` | Secret used to sign trust center auth tokens |
+| `PROBOD_BASE_URL` | Public-facing URL of the application (e.g. `https://probo.example.com`) |
+| `API_ADDR` | API server listen address (e.g. `0.0.0.0:8080`) |
+| `API_CORS_ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins |
+
+<Warning>
+  Generate unique, random values for all secrets before deploying. Never reuse the placeholder values from `cfg/dev.yaml` or the example files.
+</Warning>
+
+## Configuration reference
+
+The full configuration is defined in a YAML file. In development this is `cfg/dev.yaml`; in production it is generated from environment variables by `probod-bootstrap`. Key sections are described below.
+
+### Database (`pg`)
+
+```yaml
+pg:
+  addr: "localhost:5432"
+  username: "postgres"
+  password: "postgres"
+  database: "probod"
+  pool-size: 100
+```
+
+### Authentication (`auth`)
+
+```yaml
+auth:
+  disable-signup: false
+  invitation-confirmation-token-validity: 3600
+  cookie:
+    name: "SSID"
+    domain: "localhost"
+    secret: "this-is-a-secure-secret-for-cookie-signing-at-least-32-bytes"
+    duration: 24
+    secure: true
+  password:
+    pepper: "this-is-a-secure-pepper-for-password-hashing-at-least-32-bytes"
+    iterations: 1000000
+```
+
+### File storage (`aws`)
+
+Probo uses an S3-compatible API for file storage. Point `endpoint` at a SeaweedFS instance (or any S3-compatible service):
+
+```yaml
+aws:
+  region: "us-east-1"
+  bucket: "probod"
+  access-key-id: "probod"
+  secret-access-key: "thisisnotasecret"
+  endpoint: "http://127.0.0.1:8333"
+```
+
+### Email notifications (`notifications`)
+
+```yaml
+notifications:
+  mailer:
+    sender-name: "Probo"
+    sender-email: "no-reply@notification.getprobo.com"
+    smtp:
+      addr: "localhost:1025"
+      tls-required: false
+    mailer-interval: 60
+  slack:
+    sender-interval: 60
+```
+
+### AI agents (`agents`)
+
+Probo uses an AI provider for compliance assistance. Configure your OpenAI credentials here:
+
+```yaml
+agents:
+  providers:
+    openai:
+      type: "openai"
+      api-key: "your-openai-api-key"
+  default:
+    provider: "openai"
+    model-name: "gpt-4o"
+    temperature: 0.1
+    max-tokens: 4096
+```
+
+### Custom trust center domains (`custom-domains`)
+
+Probo provisions TLS certificates automatically for custom trust center domains using ACME (Let's Encrypt compatible):
+
+```yaml
+custom-domains:
+  renewal-interval: 3600
+  provision-interval: 30
+  cname-target: "custom.getprobo.com"
+  acme:
+    directory: "https://acme-v02.api.letsencrypt.org/directory"
+    email: "admin@example.com"
+    key-type: "EC256"
+```
+
+<Note>
+  The `cname-target` is the hostname your customers point their custom domain CNAMEs to. Set this to the public DNS name of your Probo instance. The trust center HTTPS server listens on `:8443` by default.
+</Note>
+
+## Docker Compose (production)
+
+The repository includes `compose.prod.yaml` as a production-ready starting point. It runs `probod`, PostgreSQL, SeaweedFS, and headless Chrome:
+
+```yaml
+services:
+  probo:
+    image: "ghcr.io/getprobo/probo:latest"
+    environment:
+      # Required secrets (use secure values in production)
+      PROBOD_ENCRYPTION_KEY: ${PROBOD_ENCRYPTION_KEY}
+      AUTH_COOKIE_SECRET: ${AUTH_COOKIE_SECRET}
+      AUTH_PASSWORD_PEPPER: ${AUTH_PASSWORD_PEPPER}
+      TRUST_AUTH_TOKEN_SECRET: ${TRUST_AUTH_TOKEN_SECRET}
+      # Application settings
+      PROBOD_BASE_URL: ${PROBOD_BASE_URL}
+      API_ADDR: ${API_ADDR}
+      API_CORS_ALLOWED_ORIGINS: ${API_CORS_ALLOWED_ORIGINS}
+      # PostgreSQL
+      PG_ADDR: "postgres:5432"
+      PG_USERNAME: "postgres"
+      PG_PASSWORD: "postgres"
+      PG_DATABASE: "probod"
+      PG_POOL_SIZE: "100"
+      # S3-compatible storage
+      AWS_REGION: "us-east-1"
+      AWS_BUCKET: "probod"
+      AWS_ACCESS_KEY_ID: "probod"
+      AWS_SECRET_ACCESS_KEY: "thisisnotasecret"
+      AWS_ENDPOINT: "http://seaweedfs:8333"
+      AWS_USE_PATH_STYLE: "true"
+      # Observability
+      METRICS_ADDR: "probo:8081"
+      TRACING_ADDR: ""
+      # Email notifications
+      SMTP_ADDR: "your.smtp.server:587"
+      SMTP_TLS_REQUIRED: "false"
+      MAILER_SENDER_NAME: "Probo"
+      MAILER_SENDER_EMAIL: "no-reply@notification.getprobo.com"
+      # Chrome for PDF generation
+      CHROME_DP_ADDR: "chrome:9222"
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+      - "8443:8443"
+    depends_on:
+      postgres:
+        condition: service_healthy
+```
+
+Start the stack with:
+
+```bash
+docker compose -f compose.prod.yaml up -d
+```
+
+## Build considerations
+
+When building from source for production, `make build` compiles the Go binary and all frontend apps. If you are iterating on backend changes only and want to skip the slower frontend compilation:
+
+```bash
+SKIP_APPS=1 make build
+```
+
+The resulting binary is `bin/probod`. For containerized deployments, use the official Docker image instead.
+
+## Observability
+
+The `probod` binary exposes a Prometheus metrics endpoint on `:8081` and sends OpenTelemetry traces to the address configured under `unit.tracing.addr`. The `compose.yaml` development stack includes Grafana, Prometheus, Loki, and Tempo preconfigured and ready to use.
+
+See [Observability](/self-hosting/observability) for details on the full monitoring stack.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration reference" icon="sliders" href="/self-hosting/configuration">
+    Full reference for all configuration options and environment variables.
+  </Card>
+  <Card title="Docker setup" icon="docker" href="/self-hosting/docker">
+    Detailed guide to running Probo with Docker Compose.
+  </Card>
+  <Card title="Observability" icon="chart-line" href="/self-hosting/observability">
+    Set up metrics, logs, and distributed tracing for your Probo instance.
+  </Card>
+  <Card title="SSO / SAML" icon="key" href="/access/sso-saml">
+    Configure single sign-on with your identity provider.
+  </Card>
+</CardGroup>

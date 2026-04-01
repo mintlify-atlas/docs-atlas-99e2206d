@@ -1,0 +1,288 @@
+---
+title: "Risks"
+description: "Create and manage risks in your organization's risk register."
+---
+
+Risks capture potential threats to your organization. Each risk tracks both inherent values (before controls are applied) and residual values (after controls), along with a treatment decision.
+
+## The Risk object
+
+<ResponseField name="id" type="string" required>
+  Global ID (GID) of the risk.
+</ResponseField>
+
+<ResponseField name="organization_id" type="string" required>
+  GID of the organization this risk belongs to.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Name of the risk.
+</ResponseField>
+
+<ResponseField name="description" type="string | null">
+  Optional description of the risk.
+</ResponseField>
+
+<ResponseField name="category" type="string" required>
+  Risk category (free-form string, e.g. `"Access Control"`, `"Data Privacy"`).
+</ResponseField>
+
+<ResponseField name="treatment" type="RiskTreatment" required>
+  How the organization has decided to address this risk. See [RiskTreatment enum](#risktreatment-enum).
+</ResponseField>
+
+<ResponseField name="inherent_likelihood" type="integer" required>
+  Likelihood of the risk occurring before any controls are applied (1–5 scale).
+</ResponseField>
+
+<ResponseField name="inherent_impact" type="integer" required>
+  Impact of the risk if it occurs before any controls are applied (1–5 scale).
+</ResponseField>
+
+<ResponseField name="inherent_risk_score" type="integer" required>
+  Computed inherent risk score (typically `inherent_likelihood × inherent_impact`).
+</ResponseField>
+
+<ResponseField name="residual_likelihood" type="integer" required>
+  Likelihood after controls are applied.
+</ResponseField>
+
+<ResponseField name="residual_impact" type="integer" required>
+  Impact after controls are applied.
+</ResponseField>
+
+<ResponseField name="residual_risk_score" type="integer" required>
+  Computed residual risk score.
+</ResponseField>
+
+<ResponseField name="note" type="string" required>
+  Notes on the risk, treatment rationale, or any other relevant context.
+</ResponseField>
+
+<ResponseField name="owner_id" type="string | null">
+  GID of the profile responsible for this risk.
+</ResponseField>
+
+<ResponseField name="snapshot_id" type="string | null">
+  GID of the snapshot this risk belongs to, or null for live data.
+</ResponseField>
+
+<ResponseField name="created_at" type="string (date-time)" required>
+  ISO 8601 timestamp of when the risk was created.
+</ResponseField>
+
+<ResponseField name="updated_at" type="string (date-time)" required>
+  ISO 8601 timestamp of the last update.
+</ResponseField>
+
+## RiskTreatment enum
+
+| Value | Description |
+|-------|-------------|
+| `MITIGATED` | Controls have been applied to reduce the risk to an acceptable level |
+| `ACCEPTED` | The organization has decided to accept the risk without additional controls |
+| `AVOIDED` | The activity or condition creating the risk has been eliminated |
+| `TRANSFERRED` | Risk has been transferred to a third party (e.g. via insurance or contract) |
+
+## Operations
+
+### listRisks
+
+Returns all risks for the organization.
+
+**MCP tool:** `listRisks`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="size" type="integer">
+  Number of results per page.
+</ParamField>
+
+<ParamField body="cursor" type="string">
+  Pagination cursor from a previous response's `next_cursor`.
+</ParamField>
+
+<ParamField body="order_by" type="object">
+  <Expandable title="order_by fields">
+    <ParamField body="field" type="string">
+      Sort field. One of: `CREATED_AT`, `UPDATED_AT`, `NAME`, `CATEGORY`, `TREATMENT`, `INHERENT_RISK_SCORE`, `RESIDUAL_RISK_SCORE`, `OWNER_FULL_NAME`.
+    </ParamField>
+    <ParamField body="direction" type="string">
+      Sort direction. One of: `ASC`, `DESC`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="filter" type="object">
+  <Expandable title="filter fields">
+    <ParamField body="query" type="string">
+      Full-text search query to filter risks by name or description.
+    </ParamField>
+    <ParamField body="snapshot_id" type="string | null">
+      Filter by snapshot GID. Defaults to `null`, which returns current live data. Pass a snapshot GID to retrieve risks as they were at that snapshot.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+#### Response
+
+<ResponseField name="risks" type="Risk[]" required>
+  Array of risk objects.
+</ResponseField>
+
+<ResponseField name="next_cursor" type="string">
+  Cursor for the next page.
+</ResponseField>
+
+---
+
+### getRisk
+
+Returns a single risk by ID.
+
+**MCP tool:** `getRisk`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the risk.
+</ParamField>
+
+#### Response
+
+<ResponseField name="risk" type="Risk" required>
+  The requested risk object.
+</ResponseField>
+
+---
+
+### addRisk
+
+Creates a new risk.
+
+**MCP tool:** `addRisk`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Risk name.
+</ParamField>
+
+<ParamField body="category" type="string" required>
+  Risk category.
+</ParamField>
+
+<ParamField body="treatment" type="RiskTreatment" required>
+  Treatment decision.
+</ParamField>
+
+<ParamField body="inherent_likelihood" type="integer" required>
+  Inherent likelihood (1–5).
+</ParamField>
+
+<ParamField body="inherent_impact" type="integer" required>
+  Inherent impact (1–5).
+</ParamField>
+
+<ParamField body="description" type="string">
+  Optional description.
+</ParamField>
+
+<ParamField body="owner_id" type="string">
+  GID of the risk owner.
+</ParamField>
+
+<ParamField body="residual_likelihood" type="integer">
+  Residual likelihood after controls.
+</ParamField>
+
+<ParamField body="residual_impact" type="integer">
+  Residual impact after controls.
+</ParamField>
+
+<ParamField body="note" type="string">
+  Notes or treatment rationale.
+</ParamField>
+
+#### Response
+
+<ResponseField name="risk" type="Risk" required>
+  The created risk object.
+</ResponseField>
+
+---
+
+### updateRisk
+
+Updates an existing risk.
+
+**MCP tool:** `updateRisk`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the risk to update.
+</ParamField>
+
+All other fields from `addRisk` are optional. Only provided fields are updated.
+
+#### Response
+
+<ResponseField name="risk" type="Risk" required>
+  The updated risk object.
+</ResponseField>
+
+---
+
+### deleteRisk
+
+Deletes a risk.
+
+**MCP tool:** `deleteRisk`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the risk to delete.
+</ParamField>
+
+#### Response
+
+<ResponseField name="deleted_risk_id" type="string" required>
+  GID of the deleted risk.
+</ResponseField>
+
+## Example
+
+```bash
+curl -X POST https://your-probo-instance/api/mcp/v1 \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "addRisk",
+      "arguments": {
+        "organization_id": "gid://probo/Organization/01J5XKZW9QMXP3N6V8HTJA2FKB",
+        "name": "Unauthorized access to production database",
+        "category": "Access Control",
+        "treatment": "MITIGATED",
+        "inherent_likelihood": 3,
+        "inherent_impact": 5,
+        "residual_likelihood": 1,
+        "residual_impact": 5,
+        "note": "Mitigated through MFA enforcement, VPN requirement, and least-privilege IAM policies."
+      }
+    }
+  }'
+```

@@ -1,0 +1,276 @@
+---
+title: "MCP integration"
+description: "Use Probo with AI agents via the Model Context Protocol"
+---
+
+The Model Context Protocol (MCP) is an open standard that lets AI assistants call external tools over HTTP. Probo exposes an MCP server so that AI agents — including Claude Desktop, Cursor, and any other MCP-compatible client — can read and write compliance data on your behalf.
+
+With MCP you can ask an AI to list all open risks, create a vendor record from a meeting note, or check which controls still need evidence, and the agent will call Probo directly rather than asking you to do it manually.
+
+## Endpoint
+
+```
+https://your-probo-instance/api/mcp/v1
+```
+
+## Authentication
+
+All MCP requests require an API key passed as a Bearer token. Generate one in Probo under **Settings → Access → API keys** (see [API keys](/access/api-keys)).
+
+## Connecting Claude Desktop
+
+<Steps>
+  <Step title="Generate an API key">
+    In Probo, go to **Settings → Access → API keys** and create a new key. Copy the value — you will not be able to see it again.
+  </Step>
+  <Step title="Open the Claude Desktop config file">
+    The configuration file is at:
+
+    <CodeGroup>
+
+    ```text macOS
+    ~/Library/Application Support/Claude/claude_desktop_config.json
+    ```
+
+    ```text Windows
+    %APPDATA%\Claude\claude_desktop_config.json
+    ```
+
+    ```text Linux
+    ~/.config/claude/claude_desktop_config.json
+    ```
+
+    </CodeGroup>
+  </Step>
+  <Step title="Add the Probo MCP server">
+    Add a `mcpServers` entry with your instance URL and API key:
+
+    ```json claude_desktop_config.json
+    {
+      "mcpServers": {
+        "probo": {
+          "url": "https://your-probo-instance/api/mcp/v1",
+          "headers": {
+            "Authorization": "Bearer YOUR_API_KEY"
+          }
+        }
+      }
+    }
+    ```
+  </Step>
+  <Step title="Restart Claude Desktop">
+    Quit and reopen Claude Desktop. The Probo tools should appear in the tools list (hammer icon).
+  </Step>
+</Steps>
+
+<Note>
+  Replace `your-probo-instance` with the actual hostname of your Probo deployment, for example `app.getprobo.com`.
+</Note>
+
+## Available tools
+
+The Probo MCP server exposes the following tools. Any MCP-compatible agent can call them.
+
+### Organizations
+
+| Tool | Description |
+|------|-------------|
+| `listOrganizations` | List all organizations the authenticated user has access to |
+
+### Vendors
+
+| Tool | Description |
+|------|-------------|
+| `listVendors` | List all vendors for the organization |
+| `addVendor` | Add a new vendor to the organization |
+| `updateVendor` | Update an existing vendor |
+| `deleteVendor` | Delete a vendor |
+| `listVendorRiskAssessments` | List all risk assessments for a vendor |
+| `addVendorRiskAssessment` | Add a new risk assessment for a vendor |
+
+### Users
+
+| Tool | Description |
+|------|-------------|
+| `listUsers` | List all users for the organization |
+| `getUser` | Get a user by ID |
+| `createUser` | Create a new user in the organization |
+| `inviteUser` | Invite an existing user profile to the organization |
+| `updateUser` | Update an existing user profile |
+| `updateMembership` | Update a membership role |
+| `removeUser` | Remove a user from the organization |
+
+### Risks
+
+| Tool | Description |
+|------|-------------|
+| `listRisks` | List all risks for the organization |
+| `getRisk` | Get a risk by ID |
+| `addRisk` | Add a new risk to the organization |
+| `updateRisk` | Update an existing risk |
+| `deleteRisk` | Delete a risk |
+| `listRiskObligations` | List obligations linked to a risk |
+| `linkRisk` | Link a risk to a resource (document, measure, or obligation) |
+| `unlinkRisk` | Unlink a risk from a resource |
+
+### Measures
+
+| Tool | Description |
+|------|-------------|
+| `listMeasures` | List all measures for the organization |
+| `getMeasure` | Get a measure by ID |
+| `addMeasure` | Add a new measure to the organization |
+| `updateMeasure` | Update an existing measure |
+| `deleteMeasure` | Delete a measure |
+| `linkMeasure` | Link a measure to a resource (control or risk) |
+| `unlinkMeasure` | Unlink a measure from a resource |
+| `listMeasureRisks` | List risks linked to a measure |
+| `listMeasureControls` | List controls linked to a measure |
+| `listMeasureTasks` | List tasks linked to a measure |
+| `listMeasureEvidences` | List evidences linked to a measure |
+
+### Frameworks
+
+| Tool | Description |
+|------|-------------|
+| `listFrameworks` | List all frameworks for the organization |
+| `getFramework` | Get a framework by ID |
+| `addFramework` | Add a new framework to the organization |
+| `updateFramework` | Update an existing framework |
+
+### Controls
+
+| Tool | Description |
+|------|-------------|
+| `listControls` | List all controls for the organization or framework |
+| `getControl` | Get a control by ID |
+| `addControl` | Add a new control to a framework |
+| `updateControl` | Update an existing control |
+| `linkControl` | Link a resource to a control (measure, document, audit, snapshot, or obligation) |
+| `unlinkControl` | Unlink a resource from a control |
+| `listControlMeasures` | List measures linked to a control |
+| `listControlDocuments` | List documents linked to a control |
+| `listControlAudits` | List audits linked to a control |
+| `listControlObligations` | List obligations linked to a control |
+| `listControlSnapshots` | List snapshots linked to a control |
+
+### Assets
+
+| Tool | Description |
+|------|-------------|
+| `listAssets` | List all assets for the organization |
+| `getAsset` | Get an asset by ID |
+| `addAsset` | Add a new asset to the organization |
+| `updateAsset` | Update an existing asset |
+
+### Data
+
+| Tool | Description |
+|------|-------------|
+| `listData` | List all data records for the organization |
+| `getDatum` | Get a data record by ID |
+| `addDatum` | Add a new data record to the organization |
+| `updateDatum` | Update an existing data record |
+
+### Findings
+
+| Tool | Description |
+|------|-------------|
+| `listFindings` | List all findings (nonconformities, observations, exceptions) for the organization |
+| `getFinding` | Get a finding by ID |
+| `addFinding` | Add a new finding to the organization |
+| `updateFinding` | Update an existing finding |
+| `deleteFinding` | Delete a finding |
+| `linkFindingAudit` | Link a finding to an audit with a reference ID |
+| `unlinkFindingAudit` | Unlink a finding from an audit |
+| `listFindingAudits` | List audits linked to a finding |
+
+### Obligations
+
+| Tool | Description |
+|------|-------------|
+| `listObligations` | List all obligations for the organization |
+| `getObligation` | Get an obligation by ID |
+| `addObligation` | Add a new obligation to the organization |
+| `updateObligation` | Update an existing obligation |
+
+### Tasks
+
+| Tool | Description |
+|------|-------------|
+| `listTasks` | List all tasks for the organization or measure |
+| `getTask` | Get a task by ID |
+| `addTask` | Add a new task to the organization |
+| `updateTask` | Update an existing task |
+| `assignTask` | Assign a task to a person |
+| `unassignTask` | Unassign a task from a person |
+| `deleteTask` | Delete a task |
+
+### Audits
+
+| Tool | Description |
+|------|-------------|
+| `listAudits` | List all audits for the organization |
+| `getAudit` | Get an audit by ID |
+| `addAudit` | Add a new audit to the organization |
+| `updateAudit` | Update an existing audit |
+| `getAuditReportUrl` | Get a presigned download URL for an audit report (valid 15 minutes) |
+
+### Documents
+
+| Tool | Description |
+|------|-------------|
+| `listDocuments` | List all documents for the organization |
+| `getDocument` | Get a document by ID |
+| `addDocument` | Add a new document to the organization |
+| `updateDocument` | Update an existing document |
+| `archiveDocument` | Archive a document |
+| `unarchiveDocument` | Unarchive a document |
+| `listDocumentVersions` | List all versions of a document |
+
+### Snapshots
+
+| Tool | Description |
+|------|-------------|
+| `listSnapshots` | List all snapshots for the organization |
+| `getSnapshot` | Get a snapshot by ID |
+| `takeSnapshot` | Take a snapshot of a collection (risks, vendors, assets, data, findings, obligations, or processing activities) |
+
+### GDPR
+
+| Tool | Description |
+|------|-------------|
+| `listProcessingActivities` | List all processing activities for the organization |
+| `getProcessingActivity` | Get a processing activity by ID |
+| `addProcessingActivity` | Add a new processing activity |
+| `updateProcessingActivity` | Update an existing processing activity |
+| `deleteProcessingActivity` | Delete a processing activity |
+| `listDataProtectionImpactAssessments` | List all DPIAs for the organization |
+| `getDataProtectionImpactAssessment` | Get a DPIA by ID |
+| `addDataProtectionImpactAssessment` | Add a new DPIA for a processing activity |
+| `updateDataProtectionImpactAssessment` | Update an existing DPIA |
+| `deleteDataProtectionImpactAssessment` | Delete a DPIA |
+| `listTransferImpactAssessments` | List all transfer impact assessments (TIAs) for the organization |
+| `getTransferImpactAssessment` | Get a TIA by ID |
+| `addTransferImpactAssessment` | Add a new TIA for a processing activity |
+| `updateTransferImpactAssessment` | Update an existing TIA |
+| `deleteTransferImpactAssessment` | Delete a TIA |
+
+## Use cases
+
+**AI-assisted risk identification** — Ask an AI assistant to review a description of a new system and suggest risks. It can then call `addRisk` to record them directly in Probo.
+
+**Automated vendor assessment** — When onboarding a new tool, ask the agent to call `addVendor` and `addVendorRiskAssessment` with values it extracts from the vendor's security documentation.
+
+**Evidence gathering** — Ask the agent to list controls that still need evidence (`listControls`, `listMeasureEvidences`) and draft a collection plan, then assign tasks (`addTask`, `assignTask`) to the responsible people.
+
+**Compliance gap analysis** — Ask the agent to pull all open findings (`listFindings`) and map them to controls (`listControlMeasures`), producing a prioritized remediation list without leaving the chat.
+
+<CardGroup cols={2}>
+  <Card title="API keys" icon="key" href="/access/api-keys">
+    Generate and manage API keys for MCP authentication.
+  </Card>
+  <Card title="CLI (prb)" icon="terminal" href="/integrations/cli">
+    Use the command-line interface to manage Probo resources.
+  </Card>
+</CardGroup>

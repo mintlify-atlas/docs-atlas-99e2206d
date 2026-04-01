@@ -1,0 +1,363 @@
+---
+title: "Users"
+description: "Manage users (profiles) and their membership roles within your organization."
+---
+
+Users in Probo are represented as **profiles**. A profile holds a person's identity information and is linked to an organization through a membership with a specific role.
+
+## The Profile object
+
+<ResponseField name="id" type="string" required>
+  Global ID (GID) of the profile.
+</ResponseField>
+
+<ResponseField name="organization_id" type="string" required>
+  GID of the organization this profile belongs to.
+</ResponseField>
+
+<ResponseField name="full_name" type="string" required>
+  Full name of the user.
+</ResponseField>
+
+<ResponseField name="email_address" type="string" required>
+  Primary email address.
+</ResponseField>
+
+<ResponseField name="additional_email_addresses" type="string[]" required>
+  Additional email addresses associated with the user.
+</ResponseField>
+
+<ResponseField name="kind" type="string | null" required>
+  User kind or employment type (e.g. employee, contractor).
+</ResponseField>
+
+<ResponseField name="position" type="string | null">
+  Job title or position.
+</ResponseField>
+
+<ResponseField name="contract_start_date" type="string | null (date-time)">
+  Contract or employment start date.
+</ResponseField>
+
+<ResponseField name="contract_end_date" type="string | null (date-time)">
+  Contract or employment end date.
+</ResponseField>
+
+<ResponseField name="created_at" type="string (date-time)" required>
+  ISO 8601 timestamp of when the profile was created.
+</ResponseField>
+
+<ResponseField name="updated_at" type="string (date-time)" required>
+  ISO 8601 timestamp of the last update.
+</ResponseField>
+
+## MembershipRole enum
+
+Controls what actions a user can perform within an organization.
+
+| Value | Description |
+|-------|-------------|
+| `OWNER` | Full administrative access, including billing and organization deletion |
+| `ADMIN` | Can manage users, settings, and all resources |
+| `EMPLOYEE` | Standard access to compliance resources |
+| `VIEWER` | Read-only access |
+| `AUDITOR` | Read-only access intended for external auditors |
+
+## The Membership object
+
+<ResponseField name="id" type="string" required>
+  Global ID (GID) of the membership.
+</ResponseField>
+
+<ResponseField name="role" type="MembershipRole" required>
+  The user's role in the organization.
+</ResponseField>
+
+<ResponseField name="created_at" type="string (date-time)" required>
+  ISO 8601 timestamp of when the membership was created.
+</ResponseField>
+
+## Operations
+
+### listUsers
+
+Returns all users in an organization.
+
+**MCP tool:** `listUsers`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="size" type="integer">
+  Number of results per page. Defaults to 20.
+</ParamField>
+
+<ParamField body="cursor" type="string">
+  Pagination cursor from a previous response's `next_cursor`.
+</ParamField>
+
+<ParamField body="order_by" type="object">
+  <Expandable title="order_by fields">
+    <ParamField body="field" type="string">
+      Sort field. One of: `CREATED_AT`, `FULL_NAME`, `KIND`.
+    </ParamField>
+    <ParamField body="direction" type="string">
+      Sort direction. One of: `ASC`, `DESC`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="filter" type="object">
+  <Expandable title="filter fields">
+    <ParamField body="exclude_contract_ended" type="boolean">
+      When `true`, excludes users whose contract end date is in the past.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+#### Response
+
+<ResponseField name="users" type="Profile[]" required>
+  Array of profile objects.
+</ResponseField>
+
+<ResponseField name="next_cursor" type="string">
+  Cursor for the next page. Absent when there are no more results.
+</ResponseField>
+
+---
+
+### getUser
+
+Returns a single user by ID.
+
+**MCP tool:** `getUser`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the profile.
+</ParamField>
+
+#### Response
+
+<ResponseField name="user" type="Profile" required>
+  The requested profile object.
+</ResponseField>
+
+---
+
+### createUser
+
+Creates a new user profile and adds them to the organization.
+
+**MCP tool:** `createUser`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="full_name" type="string" required>
+  Full name of the user.
+</ParamField>
+
+<ParamField body="email_address" type="string" required>
+  Primary email address.
+</ParamField>
+
+<ParamField body="role" type="MembershipRole" required>
+  Membership role for the new user.
+</ParamField>
+
+<ParamField body="kind" type="string | null" required>
+  User kind (e.g. employee, contractor).
+</ParamField>
+
+<ParamField body="additional_email_addresses" type="string[]">
+  Additional email addresses.
+</ParamField>
+
+<ParamField body="position" type="string | null">
+  Job title or position.
+</ParamField>
+
+<ParamField body="contract_start_date" type="string | null">
+  Contract start date (ISO 8601).
+</ParamField>
+
+<ParamField body="contract_end_date" type="string | null">
+  Contract end date (ISO 8601).
+</ParamField>
+
+#### Response
+
+<ResponseField name="user" type="Profile" required>
+  The created profile object.
+</ResponseField>
+
+---
+
+### inviteUser
+
+Sends an invitation to an existing profile to join the organization.
+
+**MCP tool:** `inviteUser`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="profile_id" type="string" required>
+  GID of the profile to invite.
+</ParamField>
+
+#### Response
+
+<ResponseField name="invitation_id" type="string" required>
+  GID of the created invitation.
+</ResponseField>
+
+---
+
+### updateUser
+
+Updates an existing user's profile information.
+
+**MCP tool:** `updateUser`
+
+#### Parameters
+
+<ParamField body="id" type="string" required>
+  GID of the profile to update.
+</ParamField>
+
+<ParamField body="full_name" type="string" required>
+  Updated full name.
+</ParamField>
+
+<ParamField body="kind" type="string | null" required>
+  Updated user kind.
+</ParamField>
+
+<ParamField body="additional_email_addresses" type="string[] | null">
+  Updated additional email addresses.
+</ParamField>
+
+<ParamField body="position" type="string | null">
+  Updated position.
+</ParamField>
+
+<ParamField body="contract_start_date" type="string | null">
+  Updated contract start date.
+</ParamField>
+
+<ParamField body="contract_end_date" type="string | null">
+  Updated contract end date.
+</ParamField>
+
+---
+
+### removeUser
+
+Removes a user from the organization.
+
+**MCP tool:** `removeUser`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="profile_id" type="string" required>
+  GID of the profile to remove.
+</ParamField>
+
+#### Response
+
+<ResponseField name="deleted_user_id" type="string" required>
+  GID of the removed profile.
+</ResponseField>
+
+---
+
+### updateMembership
+
+Changes a user's role within the organization.
+
+**MCP tool:** `updateMembership`
+
+#### Parameters
+
+<ParamField body="organization_id" type="string" required>
+  GID of the organization.
+</ParamField>
+
+<ParamField body="membership_id" type="string" required>
+  GID of the membership to update.
+</ParamField>
+
+<ParamField body="role" type="MembershipRole" required>
+  New role to assign.
+</ParamField>
+
+#### Response
+
+<ResponseField name="membership" type="Membership" required>
+  The updated membership object.
+</ResponseField>
+
+## Examples
+
+<CodeGroup>
+
+```bash Create a user (MCP)
+curl -X POST https://your-probo-instance/api/mcp/v1 \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "createUser",
+      "arguments": {
+        "organization_id": "gid://probo/Organization/01J5XKZW9QMXP3N6V8HTJA2FKB",
+        "full_name": "Jane Smith",
+        "email_address": "jane@example.com",
+        "role": "EMPLOYEE",
+        "kind": "employee",
+        "position": "Security Engineer",
+        "contract_start_date": "2024-01-01T00:00:00Z"
+      }
+    }
+  }'
+```
+
+```bash List users (MCP)
+curl -X POST https://your-probo-instance/api/mcp/v1 \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "listUsers",
+      "arguments": {
+        "organization_id": "gid://probo/Organization/01J5XKZW9QMXP3N6V8HTJA2FKB",
+        "size": 25,
+        "order_by": { "field": "FULL_NAME", "direction": "ASC" }
+      }
+    }
+  }'
+```
+
+</CodeGroup>

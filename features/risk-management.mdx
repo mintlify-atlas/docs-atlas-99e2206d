@@ -1,0 +1,121 @@
+---
+title: 'Risk management'
+description: 'Maintain a risk register, score risks using likelihood and impact, and link risks to measures and controls.'
+keywords: ['risk', 'risk register', 'risk management', 'likelihood', 'impact', 'risk score', 'treatment', 'mitigation']
+---
+
+Probo includes a risk register where you identify, score, and track the treatment of information security risks. Risks are scored on both an inherent (pre-control) and residual (post-control) basis, giving you a clear picture of how your security measures reduce exposure.
+
+## Risk fields
+
+Each risk record contains the following fields:
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Short descriptive name for the risk |
+| **Description** | Detailed explanation of the risk scenario |
+| **Category** | Free-text category (e.g. "Access Control", "Third-Party", "Data Loss") |
+| **Treatment** | How you are addressing the risk |
+| **Owner** | The team member responsible for managing this risk |
+| **Note** | Additional context or comments |
+| **Inherent likelihood** | Likelihood before controls (1–5) |
+| **Inherent impact** | Impact before controls (1–5) |
+| **Inherent risk score** | Calculated as `inherent_likelihood × inherent_impact` |
+| **Residual likelihood** | Likelihood after controls (1–5) |
+| **Residual impact** | Impact after controls (1–5) |
+| **Residual risk score** | Calculated as `residual_likelihood × residual_impact` |
+
+## Scoring methodology
+
+Probo uses a 5×5 risk matrix. Both likelihood and impact are rated on a 1–5 scale:
+
+```
+Score = Likelihood × Impact
+```
+
+This produces scores from 1 (lowest) to 25 (highest). The inherent score reflects the risk without any controls in place; the residual score reflects the risk after your measures are applied.
+
+<Note>
+When you create a risk and do not specify residual values, Probo initializes `residual_likelihood` and `residual_impact` to the same values as the inherent scores. Update them once you have linked measures to reflect the actual reduction in exposure.
+</Note>
+
+## Risk treatments
+
+Every risk must have one of four treatment strategies:
+
+<Tabs>
+  <Tab title="Mitigated">
+    You have implemented controls that reduce the likelihood or impact of the risk to an acceptable level.
+
+    Link the risk to the relevant measures in Probo to show which controls are responsible for the reduction. Update the residual scores to reflect the post-control exposure.
+  </Tab>
+
+  <Tab title="Accepted">
+    The risk is acknowledged but no additional action is taken, because the cost of mitigation outweighs the potential impact or the risk falls within your defined risk appetite.
+
+    Document your acceptance rationale in the **Note** field.
+  </Tab>
+
+  <Tab title="Avoided">
+    You have eliminated the activity or asset that created the risk. For example, you stop offering a feature that required storing sensitive data.
+  </Tab>
+
+  <Tab title="Transferred">
+    You have shifted the financial or operational impact to a third party, such as purchasing cyber insurance or including contractual liability clauses with a vendor.
+
+    Link the relevant vendor records to reflect the transfer relationship.
+  </Tab>
+</Tabs>
+
+## Linking risks to measures
+
+Risks can be linked to one or more measures in a many-to-many relationship. This connection lets you:
+- Show which controls reduce a given risk
+- See all risks that a measure addresses
+- Demonstrate to auditors that identified risks have corresponding controls
+
+To link a risk to a measure, use the risk–measure mapping. You can also link risks to documents and to regulatory obligations.
+
+## Risk owners
+
+Each risk can be assigned to a team member as the risk owner. The owner is responsible for:
+- Keeping the risk assessment current
+- Driving remediation or acceptance decisions
+- Providing evidence that treatment has been applied
+
+## Exporting the risk register
+
+Probo supports filtering and ordering risks by name, category, treatment, inherent risk score, residual risk score, and owner. You can sort ascending or descending on any of these fields to produce a prioritized view of your risk register for reporting or audit purposes.
+
+<AccordionGroup>
+  <Accordion title="How does Probo calculate the risk score?">
+    Probo stores `inherent_risk_score` and `residual_risk_score` as database-computed columns: `likelihood × impact`. These values are automatically updated whenever you change the likelihood or impact fields.
+  </Accordion>
+
+  <Accordion title="Can a risk be linked to multiple measures?">
+    Yes. A single risk can be linked to any number of measures, and a single measure can address any number of risks. This many-to-many relationship reflects the reality that one control often reduces multiple risks.
+  </Accordion>
+
+  <Accordion title="What is the difference between inherent and residual risk?">
+    Inherent risk is the exposure that exists before you apply any controls. Residual risk is what remains after your measures are in place. The gap between the two scores represents the effectiveness of your control environment.
+  </Accordion>
+
+  <Accordion title="Can risks be linked to obligations?">
+    Yes. Probo allows you to map risks to regulatory or contractual obligations, so you can demonstrate that identified risks trace back to specific compliance requirements.
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Compliance frameworks" icon="layers" href="/features/compliance-frameworks">
+    Understand the hierarchy that risks and measures fit into.
+  </Card>
+  <Card title="Vendor management" icon="building" href="/features/vendor-management">
+    Assess third-party vendors as part of your risk program.
+  </Card>
+  <Card title="Evidence collection" icon="file-check" href="/features/evidence-collection">
+    Collect evidence that your risk treatments are effective.
+  </Card>
+  <Card title="Policies and documents" icon="file-text" href="/features/policies-and-documents">
+    Document your risk management policies and procedures.
+  </Card>
+</CardGroup>
